@@ -3,6 +3,7 @@
 bin/
 obj/
 .aspire/
+.angular/
 node_modules/
 dist/
 coverage/

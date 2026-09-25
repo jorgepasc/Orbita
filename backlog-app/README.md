@@ -11,7 +11,7 @@ Aplicación personal para registrar y valorar el consumo de películas, series, 
 
 ## Desarrollo local
 
-Desde el directorio del proyecto (`.scratch/backlog-app`), ejecuta un único comando:
+Desde el directorio del proyecto (`backlog-app`), ejecuta un único comando:
 
 ```powershell
 dotnet run --project src/Backlog.AppHost/Backlog.AppHost.AppHost
