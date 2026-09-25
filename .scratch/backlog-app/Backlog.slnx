@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Backlog.Api/Backlog.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Backlog.AppHost/">
+    <Project Path="src/Backlog.AppHost/Backlog.AppHost.AppHost/Backlog.AppHost.AppHost.csproj" />
+    <Project Path="src/Backlog.AppHost/Backlog.AppHost.ServiceDefaults/Backlog.AppHost.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Backlog.Api.Tests/Backlog.Api.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,10 @@
+.vs/
+.idea/
+bin/
+obj/
+.aspire/
+node_modules/
+dist/
+coverage/
+*.user
+*.suo
