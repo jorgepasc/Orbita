@@ -1,6 +1,6 @@
 {
-  "name": "Backlog.Web",
-  "short_name": "Backlog.Web",
+  "name": "Orbita Web",
+  "short_name": "Orbita",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

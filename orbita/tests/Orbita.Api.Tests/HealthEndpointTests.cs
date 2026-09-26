@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace Backlog.Api.Tests;
+namespace Orbita.Api.Tests;
 
 public sealed class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 {

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Orbita.Api/Orbita.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Orbita.AppHost/">
+    <Project Path="src/Orbita.AppHost/Orbita.AppHost.AppHost/Orbita.AppHost.AppHost.csproj" />
+    <Project Path="src/Orbita.AppHost/Orbita.AppHost.ServiceDefaults/Orbita.AppHost.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Orbita.Api.Tests/Orbita.Api.Tests.csproj" />
+  </Folder>
+</Solution>

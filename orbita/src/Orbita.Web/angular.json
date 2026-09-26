@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "Backlog.Web": {
+    "Orbita.Web": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -61,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "Backlog.Web:build:production"
+              "buildTarget": "Orbita.Web:build:production"
             },
             "development": {
-              "buildTarget": "Backlog.Web:build:development"
+              "buildTarget": "Orbita.Web:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Backlog.AppHost\Backlog.AppHost.ServiceDefaults\Backlog.AppHost.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Orbita.AppHost\Orbita.AppHost.ServiceDefaults\Orbita.AppHost.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

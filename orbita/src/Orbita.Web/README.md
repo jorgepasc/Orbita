@@ -4,7 +4,7 @@ Aplicación Angular del monorepo Orbita. El comando `start` usa la configuració
 
 ## Desarrollo local
 
-Desde `src/Backlog.Web`:
+Desde `src/Orbita.Web`:
 
 ```powershell
 npm ci

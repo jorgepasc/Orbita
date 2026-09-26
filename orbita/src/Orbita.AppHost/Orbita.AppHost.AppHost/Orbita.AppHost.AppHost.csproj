@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Backlog.Api\Backlog.Api.csproj" />
+    <ProjectReference Include="..\..\Orbita.Api\Orbita.Api.csproj" />
   </ItemGroup>
 
 </Project>
