@@ -1,6 +1,6 @@
-# Backlog Web
+# Orbita Web
 
-Aplicación Angular del monorepo Backlog. El comando `start` usa la configuración de producción para servir también el service worker de la PWA.
+Aplicación Angular del monorepo Orbita. El comando `start` usa la configuración de producción para servir también el service worker de la PWA.
 
 ## Desarrollo local
 

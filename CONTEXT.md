@@ -1,4 +1,4 @@
-# Backlog
+# Orbita
 
 Contexto de una app personal para registrar y valorar el consumo de medios (películas, series, libros, videojuegos y cómics), accesible desde móvil y escritorio, con enriquecimiento automático desde APIs públicas. Sustituye a un Excel manual.
 
