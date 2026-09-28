@@ -39,6 +39,9 @@ namespace Orbita.Api.Fichas.Migrations
                     b.Property<DateOnly?>("Fecha")
                         .HasColumnType("date");
 
+                    b.Property<string>("Snapshot")
+                        .HasColumnType("jsonb");
+
                     b.Property<bool>("Terminado")
                         .HasColumnType("boolean");
 

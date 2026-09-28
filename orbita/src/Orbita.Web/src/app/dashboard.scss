@@ -160,6 +160,10 @@ button:disabled {
   background: #43855d;
 }
 
+.completion.discontinued > span {
+  background: #c77939;
+}
+
 .connection-state.offline > span {
   background: #b34035;
 }
@@ -383,16 +387,16 @@ button:disabled {
   text-align: right;
 }
 
-.ficha-details .rating {
+.ficha-details .valoracion {
   color: #a14d32;
   font-weight: 700;
 }
 
-.rating > span:first-child {
+.valoracion > span:first-child {
   color: #c77939;
 }
 
-.rating-max {
+.valoracion-max {
   color: #77796f;
   font-weight: 400;
 }

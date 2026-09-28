@@ -23,5 +23,10 @@ public sealed class FichaDbContext(DbContextOptions<FichaDbContext> options) : D
             .IsRequired();
         ficha.Property(value => value.Comentarios).HasMaxLength(4000);
         ficha.Property(value => value.Compania).HasMaxLength(200);
+        ficha.Property(value => value.Snapshot)
+            .HasConversion(
+                snapshot => snapshot!.RootElement.GetRawText(),
+                json => System.Text.Json.JsonDocument.Parse(json))
+            .HasColumnType("jsonb");
     }
 }

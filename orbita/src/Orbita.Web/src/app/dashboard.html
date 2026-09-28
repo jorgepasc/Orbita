@@ -178,8 +178,13 @@
             <article class="ficha-card">
               <div class="card-topline">
                 <span class="type-label">{{ ficha.tipo }}</span>
-                <span class="completion" [class.completed]="ficha.terminado">
-                  <span aria-hidden="true"></span>{{ ficha.terminado ? 'Terminado' : 'Pendiente' }}
+                <span
+                  class="completion"
+                  [class.completed]="ficha.terminado"
+                  [class.discontinued]="!ficha.terminado && ficha.fecha"
+                >
+                  <span aria-hidden="true"></span
+                  >{{ ficha.terminado ? 'Terminado' : ficha.fecha ? 'No continuada' : 'Pendiente' }}
                 </span>
               </div>
               <h3>{{ ficha.titulo }}</h3>
@@ -196,9 +201,9 @@
                 @if (ficha.valoracion !== null) {
                   <div>
                     <dt>Valoración</dt>
-                    <dd class="rating">
+                    <dd class="valoracion">
                       <span aria-hidden="true">✳</span> {{ ficha.valoracion
-                      }}<span class="rating-max">/10</span>
+                      }}<span class="valoracion-max">/10</span>
                     </dd>
                   </div>
                 }

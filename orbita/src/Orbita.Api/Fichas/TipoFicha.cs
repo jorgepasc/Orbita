@@ -13,13 +13,13 @@ public static class TiposFicha
 {
     private static readonly IReadOnlyDictionary<string, TipoFicha> PorNombre =
         new Dictionary<string, TipoFicha>(StringComparer.Ordinal)
-    {
-        ["Película"] = TipoFicha.Pelicula,
-        ["Serie"] = TipoFicha.Serie,
-        ["Libro"] = TipoFicha.Libro,
-        ["Juego"] = TipoFicha.Juego,
-        ["Cómic"] = TipoFicha.Comic
-    };
+        {
+            ["Película"] = TipoFicha.Pelicula,
+            ["Serie"] = TipoFicha.Serie,
+            ["Libro"] = TipoFicha.Libro,
+            ["Juego"] = TipoFicha.Juego,
+            ["Cómic"] = TipoFicha.Comic
+        };
 
     public static bool TryParse(string? nombre, out TipoFicha tipo)
     {

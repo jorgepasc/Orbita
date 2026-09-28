@@ -82,7 +82,7 @@ export class Dashboard {
           const updated =
             id === null
               ? [...current, savedFicha]
-              : current.map((item) => (item.id === savedFicha.id ? savedFicha : item));
+              : current.map((ficha) => (ficha.id === savedFicha.id ? savedFicha : ficha));
           return this.sortFichas(updated);
         });
         this.savingFicha.set(false);
@@ -107,7 +107,8 @@ export class Dashboard {
 
     this.errorMessage.set(null);
     this.fichasApi.delete(ficha.id).subscribe({
-      next: () => this.fichas.update((current) => current.filter((item) => item.id !== ficha.id)),
+      next: () =>
+        this.fichas.update((current) => current.filter((savedFicha) => savedFicha.id !== ficha.id)),
       error: () => this.errorMessage.set('No se pudo borrar la Ficha. Inténtalo de nuevo.'),
     });
   }
