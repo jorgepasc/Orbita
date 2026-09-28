@@ -83,8 +83,19 @@
             </label>
 
             <label class="field" for="fecha">
-              <span>Fecha <span class="optional-mark">opcional</span></span>
-              <input id="fecha" name="fecha" type="date" [(ngModel)]="draft.fecha" />
+              <span
+                >Fecha
+                <span class="optional-mark">{{
+                  draft.terminado ? 'obligatoria' : 'opcional'
+                }}</span></span
+              >
+              <input
+                id="fecha"
+                name="fecha"
+                type="date"
+                [required]="draft.terminado"
+                [(ngModel)]="draft.fecha"
+              />
             </label>
 
             <label class="field" for="valoracion">

@@ -116,6 +116,11 @@ public static class FichaEndpoints
             errors[nameof(input.Tipo)] = ["El Tipo debe ser Película, Serie, Libro, Juego o Cómic."];
         }
 
+        if (input.Terminado && input.Fecha is null)
+        {
+            errors[nameof(input.Fecha)] = ["La Fecha es obligatoria para una Ficha terminada."];
+        }
+
         if (input.Valoracion is < 0 or > 10)
         {
             errors[nameof(input.Valoracion)] = ["La Valoración debe estar entre 0 y 10."];

@@ -166,6 +166,21 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Create_rejects_a_finished_ficha_without_a_fecha()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Ficha terminada sin fecha",
+            tipo = "Película",
+            terminado = true
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private async Task AuthenticateAsync()
     {
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest("test-user", "test-password"));
