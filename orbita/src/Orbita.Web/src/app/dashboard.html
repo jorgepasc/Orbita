@@ -1,0 +1,37 @@
+<main>
+  <section class="hero" aria-labelledby="page-title">
+    <p class="eyebrow">ORBITA / LOCAL</p>
+    <h1 id="page-title">Tu biblioteca, sin pestañas abiertas.</h1>
+    <p class="intro">
+      El entorno local está listo para guardar cada Ficha de películas, libros, juegos y más.
+    </p>
+
+    <article class="status-card" aria-live="polite">
+      <div>
+        <p class="card-label">Conexión del backend</p>
+        @switch (backendStatus()) {
+          @case ('ready') {
+            <p class="status ready"><span aria-hidden="true"></span>Operativo</p>
+          }
+          @case ('offline') {
+            <p class="status offline"><span aria-hidden="true"></span>No disponible</p>
+          }
+          @default {
+            <p class="status loading"><span aria-hidden="true"></span>Comprobando...</p>
+          }
+        }
+      </div>
+      <div class="database-state">
+        <span class="card-label">PostgreSQL</span>
+        <strong>{{
+          databaseConfigured() ? 'Configuración recibida por Aspire' : 'Pendiente de Aspire'
+        }}</strong>
+      </div>
+    </article>
+
+    <p class="hint">
+      Ejecuta <code>dotnet run --project src/Orbita.AppHost/Orbita.AppHost.AppHost</code> para
+      levantar todo.
+    </p>
+  </section>
+</main>

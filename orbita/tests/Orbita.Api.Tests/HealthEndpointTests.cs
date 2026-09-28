@@ -1,14 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
-
 namespace Orbita.Api.Tests;
 
-public sealed class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class HealthEndpointTests : IClassFixture<OrbitaApiFactory>
 {
     private readonly HttpClient client;
 
-    public HealthEndpointTests(WebApplicationFactory<Program> factory)
+    public HealthEndpointTests(OrbitaApiFactory factory)
     {
         client = factory.CreateClient();
     }
