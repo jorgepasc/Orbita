@@ -15,11 +15,31 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
     }
 
     [Fact]
-    public async Task Fichas_require_authentication()
+    public async Task Every_ficha_endpoint_requires_authentication()
     {
-        using var response = await client.GetAsync("/api/fichas");
+        var id = Guid.NewGuid();
+        var input = new
+        {
+            titulo = "Ficha protegida",
+            tipo = "Película",
+            fecha = "2025-01-01",
+            terminado = true,
+            valoracion = 8.5m,
+            comentarios = (string?)null,
+            compania = (string?)null
+        };
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        using var listResponse = await client.GetAsync("/api/fichas");
+        using var getResponse = await client.GetAsync($"/api/fichas/{id}");
+        using var createResponse = await client.PostAsJsonAsync("/api/fichas", input);
+        using var updateResponse = await client.PutAsJsonAsync($"/api/fichas/{id}", input);
+        using var deleteResponse = await client.DeleteAsync($"/api/fichas/{id}");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, listResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, getResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, createResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, updateResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, deleteResponse.StatusCode);
     }
 
     [Fact]
