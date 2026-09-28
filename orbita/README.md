@@ -11,13 +11,19 @@ Aplicación personal para registrar y valorar el consumo de películas, series, 
 
 ## Desarrollo local
 
-Configura las credenciales y una clave de firma en los user-secrets del AppHost. La clave debe
-tener al menos 32 bytes UTF-8; este comando genera una aleatoria:
+Desde el directorio `orbita`, configura las credenciales y una clave de firma en los user-secrets
+del AppHost. La clave debe tener al menos 32 bytes UTF-8; genera una aleatoria así (compatible con
+Windows PowerShell 5.1):
 
 ```powershell
 dotnet user-secrets set "Authentication:Username" "tu-usuario" --project src/Orbita.AppHost/Orbita.AppHost.AppHost
 dotnet user-secrets set "Authentication:Password" "tu-contraseña" --project src/Orbita.AppHost/Orbita.AppHost.AppHost
-dotnet user-secrets set "Authentication:SigningKey" ([Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))) --project src/Orbita.AppHost/Orbita.AppHost.AppHost
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$bytes = New-Object byte[] 48
+$rng.GetBytes($bytes)
+$signingKey = [Convert]::ToBase64String($bytes)
+$rng.Dispose()
+dotnet user-secrets set "Authentication:SigningKey" $signingKey --project src/Orbita.AppHost/Orbita.AppHost.AppHost
 ```
 
 Issuer y Audience tienen valores locales predeterminados (`Orbita` y `Orbita.Web`); también se
