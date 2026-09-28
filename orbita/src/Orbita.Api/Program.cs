@@ -3,8 +3,10 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Orbita.Api.Fichas;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,8 +50,15 @@ builder.Services.AddAuthorization(options =>
 
 var databaseConnectionString = builder.Configuration.GetConnectionString("orbita");
 builder.Services.AddSingleton(new OrbitaDatabaseOptions(databaseConnectionString));
+builder.Services.AddDbContext<FichaDbContext>(options => options.UseNpgsql(databaseConnectionString));
 
 var app = builder.Build();
+
+if (!string.IsNullOrWhiteSpace(databaseConnectionString))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    await scope.ServiceProvider.GetRequiredService<FichaDbContext>().Database.MigrateAsync();
+}
 
 app.MapDefaultEndpoints();
 
@@ -89,6 +98,8 @@ app.MapPost("/api/auth/login", (LoginRequest request, AuthenticationSettings set
 app.MapGet("/api/auth/me", (ClaimsPrincipal principal) =>
     Results.Ok(new CurrentUserResponse(principal.Identity?.Name ?? string.Empty)))
     .RequireAuthorization();
+
+app.MapFichaEndpoints();
 
 app.UseAuthentication();
 app.UseAuthorization();

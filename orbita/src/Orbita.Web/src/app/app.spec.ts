@@ -26,13 +26,12 @@ describe('Dashboard', () => {
 
     const request = http.expectOne('/api/health');
     request.flush({ status: 'ok', databaseConfigured: true });
+    http.expectOne('/api/fichas').flush([]);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.status')?.textContent).toContain('Operativo');
-    expect(compiled.querySelector('.database-state strong')?.textContent).toContain(
-      'Configuración recibida por Aspire',
-    );
+    expect(compiled.querySelector('.connection-state')?.textContent).toContain('Operativo');
+    expect(compiled.querySelector('.database-state strong')?.textContent).toContain('Conectada');
 
     http.verify();
   });

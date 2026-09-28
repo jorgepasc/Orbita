@@ -1,37 +1,235 @@
 <main>
-  <section class="hero" aria-labelledby="page-title">
-    <p class="eyebrow">ORBITA / LOCAL</p>
-    <h1 id="page-title">Tu biblioteca, sin pestañas abiertas.</h1>
-    <p class="intro">
-      El entorno local está listo para guardar cada Ficha de películas, libros, juegos y más.
-    </p>
+  <section class="library" aria-labelledby="page-title">
+    <header class="page-heading">
+      <div>
+        <p class="eyebrow">ORBITA / MI BIBLIOTECA</p>
+        <h1 id="page-title">Historias que se quedan contigo.</h1>
+        <p class="intro">Guarda lo que has disfrutado y lo que quieres descubrir.</p>
+      </div>
+      <button class="primary-button" type="button" (click)="startCreate()">
+        Nueva Ficha <span aria-hidden="true">＋</span>
+      </button>
+    </header>
 
-    <article class="status-card" aria-live="polite">
+    <article class="connection-card" aria-live="polite">
       <div>
         <p class="card-label">Conexión del backend</p>
         @switch (backendStatus()) {
           @case ('ready') {
-            <p class="status ready"><span aria-hidden="true"></span>Operativo</p>
+            <p class="connection-state ready"><span aria-hidden="true"></span>Operativo</p>
           }
           @case ('offline') {
-            <p class="status offline"><span aria-hidden="true"></span>No disponible</p>
+            <p class="connection-state offline"><span aria-hidden="true"></span>No disponible</p>
           }
           @default {
-            <p class="status loading"><span aria-hidden="true"></span>Comprobando...</p>
+            <p class="connection-state loading"><span aria-hidden="true"></span>Comprobando...</p>
           }
         }
       </div>
       <div class="database-state">
         <span class="card-label">PostgreSQL</span>
-        <strong>{{
-          databaseConfigured() ? 'Configuración recibida por Aspire' : 'Pendiente de Aspire'
-        }}</strong>
+        <strong>{{ databaseConfigured() ? 'Conectada' : 'Pendiente de Aspire' }}</strong>
       </div>
+      <span class="ficha-count"
+        >{{ fichas().length }} {{ fichas().length === 1 ? 'Ficha' : 'Fichas' }}</span
+      >
     </article>
 
-    <p class="hint">
-      Ejecuta <code>dotnet run --project src/Orbita.AppHost/Orbita.AppHost.AppHost</code> para
-      levantar todo.
-    </p>
+    @if (errorMessage(); as message) {
+      <p class="feedback error" role="alert">{{ message }}</p>
+    }
+
+    @if (showFichaForm()) {
+      <section class="form-panel" aria-labelledby="form-title">
+        <div class="form-heading">
+          <div>
+            <p class="eyebrow">{{ editingFichaId() ? 'EDITAR FICHA' : 'NUEVA FICHA' }}</p>
+            <h2 id="form-title">
+              {{ editingFichaId() ? 'Actualiza los detalles' : 'Añade algo a tu biblioteca' }}
+            </h2>
+          </div>
+          <button
+            class="icon-button close-button"
+            type="button"
+            aria-label="Cerrar formulario"
+            (click)="cancelFichaForm()"
+          >
+            ×
+          </button>
+        </div>
+
+        <form #fichaForm="ngForm" (ngSubmit)="saveFicha()">
+          <div class="form-grid">
+            <label class="field field-wide" for="titulo">
+              <span>Título <span class="required-mark" aria-hidden="true">*</span></span>
+              <input
+                id="titulo"
+                name="titulo"
+                type="text"
+                required
+                maxlength="300"
+                autocomplete="off"
+                [(ngModel)]="draft.titulo"
+              />
+            </label>
+
+            <label class="field" for="tipo">
+              <span>Tipo</span>
+              <select id="tipo" name="tipo" required [(ngModel)]="draft.tipo">
+                @for (tipo of tiposFicha; track tipo) {
+                  <option [ngValue]="tipo">{{ tipo }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="field" for="fecha">
+              <span>Fecha <span class="optional-mark">opcional</span></span>
+              <input id="fecha" name="fecha" type="date" [(ngModel)]="draft.fecha" />
+            </label>
+
+            <label class="field" for="valoracion">
+              <span>Valoración <span class="optional-mark">opcional</span></span>
+              <input
+                id="valoracion"
+                name="valoracion"
+                type="number"
+                min="0"
+                max="10"
+                step="any"
+                placeholder="0–10"
+                [(ngModel)]="draft.valoracion"
+              />
+            </label>
+
+            <label class="field" for="compania">
+              <span>Compañía <span class="optional-mark">opcional</span></span>
+              <input
+                id="compania"
+                name="compania"
+                type="text"
+                maxlength="200"
+                placeholder="Georgia, Family, Solo…"
+                [(ngModel)]="draft.compania"
+              />
+            </label>
+
+            <label class="field field-wide" for="comentarios">
+              <span>Comentarios <span class="optional-mark">opcional</span></span>
+              <textarea
+                id="comentarios"
+                name="comentarios"
+                rows="3"
+                maxlength="4000"
+                [(ngModel)]="draft.comentarios"
+              ></textarea>
+            </label>
+
+            <label class="finished-field" for="terminado">
+              <input
+                id="terminado"
+                name="terminado"
+                type="checkbox"
+                [(ngModel)]="draft.terminado"
+              />
+              <span>Terminado</span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button class="secondary-button" type="button" (click)="cancelFichaForm()">
+              Cancelar
+            </button>
+            <button
+              class="primary-button"
+              type="submit"
+              [disabled]="fichaForm.invalid || savingFicha()"
+            >
+              {{
+                savingFicha() ? 'Guardando…' : editingFichaId() ? 'Guardar cambios' : 'Crear Ficha'
+              }}
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <section class="collection" aria-labelledby="collection-title">
+      <div class="collection-heading">
+        <div>
+          <p class="eyebrow">TU COLECCIÓN</p>
+          <h2 id="collection-title">Todas las Fichas</h2>
+        </div>
+      </div>
+
+      @if (loadingFichas()) {
+        <p class="empty-state" aria-live="polite">Cargando tus Fichas…</p>
+      } @else if (fichas().length === 0) {
+        <div class="empty-state">
+          <p class="empty-mark" aria-hidden="true">✳</p>
+          <h3>Tu biblioteca empieza aquí.</h3>
+          <p>Añade una película, un libro o cualquier historia que quieras recordar.</p>
+          <button class="secondary-button" type="button" (click)="startCreate()">
+            Crear primera Ficha
+          </button>
+        </div>
+      } @else {
+        <div class="ficha-grid">
+          @for (ficha of fichas(); track ficha.id) {
+            <article class="ficha-card">
+              <div class="card-topline">
+                <span class="type-label">{{ ficha.tipo }}</span>
+                <span class="completion" [class.completed]="ficha.terminado">
+                  <span aria-hidden="true"></span>{{ ficha.terminado ? 'Terminado' : 'Pendiente' }}
+                </span>
+              </div>
+              <h3>{{ ficha.titulo }}</h3>
+
+              <dl class="ficha-details">
+                @if (ficha.fecha) {
+                  <div>
+                    <dt>Fecha</dt>
+                    <dd>
+                      <time [attr.datetime]="ficha.fecha">{{ ficha.fecha }}</time>
+                    </dd>
+                  </div>
+                }
+                @if (ficha.valoracion !== null) {
+                  <div>
+                    <dt>Valoración</dt>
+                    <dd class="rating">
+                      <span aria-hidden="true">✳</span> {{ ficha.valoracion
+                      }}<span class="rating-max">/10</span>
+                    </dd>
+                  </div>
+                }
+                @if (ficha.compania) {
+                  <div>
+                    <dt>Compañía</dt>
+                    <dd>{{ ficha.compania }}</dd>
+                  </div>
+                }
+              </dl>
+
+              @if (ficha.comentarios) {
+                <p class="comments">{{ ficha.comentarios }}</p>
+              }
+
+              <div class="card-actions">
+                <button class="text-button" type="button" (click)="editFicha(ficha)">Editar</button>
+                <button
+                  class="text-button delete-button"
+                  type="button"
+                  (click)="deleteFicha(ficha)"
+                >
+                  Borrar
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <p class="hint">Tus Fichas se guardan de forma privada en tu biblioteca.</p>
   </section>
 </main>
