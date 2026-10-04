@@ -224,6 +224,41 @@ button:disabled {
   gap: 1rem 1.25rem;
 }
 
+.snapshot-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.85rem;
+  border: 1px solid #d7cbbb;
+  background: #f7f5ee;
+}
+
+.snapshot-preview > img {
+  width: 3.5rem;
+  height: 5.25rem;
+  flex: 0 0 auto;
+  object-fit: cover;
+}
+
+.snapshot-preview-details {
+  display: grid;
+  flex: 1;
+  gap: 0.35rem;
+}
+
+.snapshot-preview-details p {
+  margin: 0;
+  color: #4f554e;
+  font:
+    400 0.75rem/1.4 'IBM Plex Mono',
+    monospace;
+}
+
+.snapshot-preview-details strong {
+  color: #20221f;
+}
+
 .field {
   display: grid;
   align-content: start;
@@ -329,6 +364,17 @@ button:disabled {
   box-shadow: 0.3rem 0.3rem #d7cbbb;
 }
 
+.ficha-portada {
+  width: calc(100% + 2.4rem);
+  height: 11rem;
+  align-self: center;
+  margin: -1.2rem -1.2rem 1rem;
+  border-bottom: 1px solid #d7cbbb;
+  background: #f1efe9;
+  object-fit: cover;
+  object-position: center 25%;
+}
+
 .card-topline {
   flex-wrap: wrap;
 }
@@ -345,6 +391,32 @@ button:disabled {
   color: #a14d32;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.nota-externa {
+  padding: 0.2rem 0.4rem;
+  border: 1px solid #a14d32;
+  color: #a14d32;
+  font:
+    700 0.62rem/1.3 'IBM Plex Mono',
+    monospace;
+}
+
+.generos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: -0.3rem 0 0.8rem;
+}
+
+.genero-chip {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid #d7cbbb;
+  background: #f7f5ee;
+  color: #4f554e;
+  font:
+    400 0.62rem/1.3 'IBM Plex Mono',
+    monospace;
 }
 
 .completion {
@@ -503,5 +575,14 @@ button:disabled {
 
   .form-actions button {
     flex: 1;
+  }
+
+  .snapshot-preview {
+    align-items: start;
+    flex-wrap: wrap;
+  }
+
+  .snapshot-preview-details {
+    min-width: calc(100% - 5rem);
   }
 }

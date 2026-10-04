@@ -24,7 +24,7 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
             $"{BaseUrl}/search.json?q={Uri.EscapeDataString(texto)}&limit=20",
             cancellationToken);
 
-        return [.. busqueda.Docs.Select(documento => new Resultado(
+        return [.. busqueda.Docs.Take(20).Select(documento => new Resultado(
             documento.Key,
             documento.Title,
             documento.FirstPublishYear,

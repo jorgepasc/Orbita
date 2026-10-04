@@ -58,7 +58,39 @@
           </button>
         </div>
 
+        @if (editingFichaId() === null && mostrarBusqueda()) {
+          <app-enriquecimiento-panel
+            [tipo]="draft.tipo"
+            (elegido)="elegirEnriquecimiento($event)"
+            (manual)="anadirManualmente()"
+          />
+        }
+
         <form #fichaForm="ngForm" (ngSubmit)="saveFicha()">
+          @if (draft.snapshot; as snapshot) {
+            <aside class="snapshot-preview" aria-label="Vista previa del Snapshot">
+              @if (snapshot.portada; as portada) {
+                <img [src]="portada" alt="" loading="lazy" />
+              }
+              <div class="snapshot-preview-details">
+                @if (snapshot.autoria) {
+                  <p><strong>Autoría:</strong> {{ snapshot.autoria }}</p>
+                }
+                @if (snapshot.generos.length > 0) {
+                  <p><strong>Géneros:</strong> {{ snapshot.generos.join(', ') }}</p>
+                }
+                @if (snapshot.notaExterna !== null) {
+                  <p><strong>Nota Externa:</strong> {{ snapshot.notaExterna }}</p>
+                }
+              </div>
+              @if (editingFichaId() === null) {
+                <button class="text-button" type="button" (click)="quitarSnapshot()">
+                  Quitar Snapshot
+                </button>
+              }
+            </aside>
+          }
+
           <div class="form-grid">
             <label class="field field-wide" for="titulo">
               <span>Título <span class="required-mark" aria-hidden="true">*</span></span>
@@ -75,7 +107,13 @@
 
             <label class="field" for="tipo">
               <span>Tipo</span>
-              <select id="tipo" name="tipo" required [(ngModel)]="draft.tipo">
+              <select
+                id="tipo"
+                name="tipo"
+                required
+                [(ngModel)]="draft.tipo"
+                (ngModelChange)="alCambiarTipo()"
+              >
                 @for (tipo of tiposFicha; track tipo) {
                   <option [ngValue]="tipo">{{ tipo }}</option>
                 }
@@ -187,6 +225,9 @@
         <div class="ficha-grid">
           @for (ficha of fichas(); track ficha.id) {
             <article class="ficha-card">
+              @if (ficha.snapshot?.portada; as portada) {
+                <img class="ficha-portada" [src]="portada" alt="" loading="lazy" />
+              }
               <div class="card-topline">
                 <span class="type-label">{{ ficha.tipo }}</span>
                 <span
@@ -197,8 +238,21 @@
                   <span aria-hidden="true"></span
                   >{{ ficha.terminado ? 'Terminado' : ficha.fecha ? 'No continuada' : 'Pendiente' }}
                 </span>
+                @if (
+                  ficha.snapshot?.notaExterna !== null && ficha.snapshot?.notaExterna !== undefined
+                ) {
+                  <span class="nota-externa">Nota Externa {{ ficha.snapshot?.notaExterna }}</span>
+                }
               </div>
               <h3>{{ ficha.titulo }}</h3>
+
+              @if (ficha.snapshot?.generos?.length) {
+                <div class="generos" aria-label="Géneros">
+                  @for (genero of ficha.snapshot?.generos; track genero) {
+                    <span class="genero-chip">{{ genero }}</span>
+                  }
+                </div>
+              }
 
               <dl class="ficha-details">
                 @if (ficha.fecha) {

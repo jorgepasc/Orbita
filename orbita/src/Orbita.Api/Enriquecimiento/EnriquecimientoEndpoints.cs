@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Orbita.Api.Fichas;
 
 namespace Orbita.Api.Enriquecimiento;
@@ -42,7 +43,7 @@ public static class EnriquecimientoEndpoints
             var resultados = await proveedores.Para(tipoFicha).BuscarAsync(tipoFicha, q!.Trim(), cancellationToken);
             return Results.Ok(resultados);
         }
-        catch (ApiExternaException)
+        catch (Exception exception) when (EsFalloApiExterna(exception))
         {
             return Results.Problem(
                 statusCode: StatusCodes.Status502BadGateway,
@@ -80,11 +81,14 @@ public static class EnriquecimientoEndpoints
                 .ConstruirSnapshotAsync(tipoFicha, idExterno!.Trim(), cancellationToken);
             return Results.Ok(snapshot);
         }
-        catch (ApiExternaException)
+        catch (Exception exception) when (EsFalloApiExterna(exception))
         {
             return Results.Problem(
                 statusCode: StatusCodes.Status502BadGateway,
                 title: "No se pudo consultar la API externa.");
         }
     }
+
+    private static bool EsFalloApiExterna(Exception exception) =>
+        exception is ApiExternaException or HttpRequestException or JsonException;
 }

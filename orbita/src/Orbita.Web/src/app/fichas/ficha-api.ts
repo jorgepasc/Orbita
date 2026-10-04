@@ -6,6 +6,18 @@ export const TIPOS_FICHA = ['Película', 'Serie', 'Libro', 'Juego', 'Cómic'] as
 
 export type TipoFicha = (typeof TIPOS_FICHA)[number];
 
+export type FuenteSnapshot = 'tmdb' | 'rawg' | 'openlibrary';
+
+export interface Snapshot {
+  fuente: FuenteSnapshot;
+  idExterno: string;
+  portada: string | null;
+  anio: number | null;
+  autoria: string | null;
+  notaExterna: number | null;
+  generos: string[];
+}
+
 export interface Ficha {
   id: string;
   titulo: string;
@@ -15,6 +27,7 @@ export interface Ficha {
   valoracion: number | null;
   comentarios: string | null;
   compania: string | null;
+  snapshot: Snapshot | null;
 }
 
 export interface FichaDraft {
@@ -25,6 +38,7 @@ export interface FichaDraft {
   valoracion: number | null;
   comentarios: string | null;
   compania: string | null;
+  snapshot: Snapshot | null;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -1,0 +1,63 @@
+<section class="enriquecimiento" aria-labelledby="enriquecimiento-title">
+  <div class="enriquecimiento-heading">
+    <div>
+      <p class="eyebrow">ENRIQUECER</p>
+      <h3 id="enriquecimiento-title">Busca en APIs externas</h3>
+    </div>
+    <button class="text-button manual-link" type="button" (click)="manual.emit()">
+      Añadir manualmente
+    </button>
+  </div>
+
+  <form class="busqueda" (submit)="buscar($event)">
+    <label class="field" for="consulta">
+      <span>Título a buscar</span>
+      <input
+        id="consulta"
+        name="consulta"
+        type="search"
+        autocomplete="off"
+        placeholder="Dune, God of War, El nombre del viento…"
+        (input)="actualizarConsulta($event)"
+      />
+    </label>
+    <button class="primary-button" type="submit" [disabled]="buscando() || !consulta.trim()">
+      {{ buscando() ? 'Buscando…' : 'Buscar' }}
+    </button>
+  </form>
+
+  @if (errorMessage(); as message) {
+    <p class="feedback error" role="alert">{{ message }}</p>
+  }
+
+  @if (busco() && !buscando() && resultados().length === 0) {
+    <p class="sin-resultados">
+      Sin resultados. Prueba con otro título o añade la Ficha manualmente.
+    </p>
+  }
+
+  @if (resultados().length > 0) {
+    <ul class="resultados">
+      @for (resultado of resultados(); track resultado.idExterno) {
+        <li>
+          <button class="resultado" type="button" (click)="elegir(resultado)">
+            @if (resultado.portada; as portada) {
+              <img [src]="portada" alt="" loading="lazy" />
+            }
+            <span class="resultado-datos">
+              <span class="resultado-titulo">{{ resultado.titulo }}</span>
+              <span class="resultado-meta">
+                @if (resultado.anio; as anio) {
+                  {{ anio }}
+                }
+                @if (resultado.notaExterna !== null) {
+                  <span class="resultado-nota">★ {{ resultado.notaExterna }}</span>
+                }
+              </span>
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -33,7 +33,7 @@ public sealed class RawgProveedor(HttpClient http, IOptions<RawgOptions> options
             $"{BaseUrl}/games?search={Uri.EscapeDataString(texto)}&page_size=20&key={clave}",
             cancellationToken);
 
-        return [.. busqueda.Results.Select(juego => new Resultado(
+        return [.. busqueda.Results.Take(20).Select(juego => new Resultado(
             juego.Id.ToString(),
             juego.Name,
             Anio.DesdeFecha(juego.Released),

@@ -31,7 +31,7 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
             $"{BaseUrl}/search/{ruta}?query={Uri.EscapeDataString(texto)}&language=es-ES",
             cancellationToken);
 
-        return [.. busqueda.Results.Select(resultado => new Resultado(
+        return [.. (busqueda.Results ?? []).Take(20).Select(resultado => new Resultado(
             resultado.Id.ToString(),
             resultado.Title ?? resultado.Name ?? string.Empty,
             Anio.DesdeFecha(resultado.ReleaseDate ?? resultado.FirstAirDate),

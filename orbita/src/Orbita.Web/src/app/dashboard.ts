@@ -1,7 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FichaApi, TIPOS_FICHA, type Ficha, type FichaDraft } from './fichas/ficha-api';
+import {
+  FichaApi,
+  TIPOS_FICHA,
+  type Ficha,
+  type FichaDraft,
+  type Snapshot,
+} from './fichas/ficha-api';
+import { EnriquecimientoPanel } from './enriquecimiento/enriquecimiento-panel';
 
 interface BackendHealth {
   status: string;
@@ -10,7 +17,7 @@ interface BackendHealth {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule],
+  imports: [FormsModule, EnriquecimientoPanel],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -24,6 +31,7 @@ export class Dashboard {
   protected readonly loadingFichas = signal(true);
   protected readonly savingFicha = signal(false);
   protected readonly showFichaForm = signal(false);
+  protected readonly mostrarBusqueda = signal(false);
   protected readonly editingFichaId = signal<string | null>(null);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly tiposFicha = TIPOS_FICHA;
@@ -45,6 +53,7 @@ export class Dashboard {
     this.draft = this.emptyDraft();
     this.editingFichaId.set(null);
     this.showFichaForm.set(true);
+    this.mostrarBusqueda.set(true);
     this.errorMessage.set(null);
   }
 
@@ -57,16 +66,43 @@ export class Dashboard {
       valoracion: ficha.valoracion,
       comentarios: ficha.comentarios,
       compania: ficha.compania,
+      snapshot: ficha.snapshot,
     };
     this.editingFichaId.set(ficha.id);
     this.showFichaForm.set(true);
+    this.mostrarBusqueda.set(false);
     this.errorMessage.set(null);
   }
 
   protected cancelFichaForm(): void {
     this.showFichaForm.set(false);
     this.editingFichaId.set(null);
+    this.mostrarBusqueda.set(false);
     this.errorMessage.set(null);
+  }
+
+  protected elegirEnriquecimiento(elegido: { snapshot: Snapshot; titulo: string }): void {
+    this.draft.snapshot = elegido.snapshot;
+    this.draft.titulo = elegido.titulo;
+    this.mostrarBusqueda.set(false);
+  }
+
+  protected anadirManualmente(): void {
+    this.mostrarBusqueda.set(false);
+  }
+
+  protected quitarSnapshot(): void {
+    this.draft.snapshot = null;
+    if (this.editingFichaId() === null) {
+      this.mostrarBusqueda.set(true);
+    }
+  }
+
+  protected alCambiarTipo(): void {
+    if (this.editingFichaId() === null && this.draft.snapshot !== null) {
+      this.draft.snapshot = null;
+      this.mostrarBusqueda.set(true);
+    }
   }
 
   protected saveFicha(): void {
@@ -137,6 +173,7 @@ export class Dashboard {
       valoracion: null,
       comentarios: null,
       compania: null,
+      snapshot: null,
     };
   }
 
