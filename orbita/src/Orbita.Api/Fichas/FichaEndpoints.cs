@@ -44,7 +44,7 @@ public static class FichaEndpoints
         FichaDbContext database,
         CancellationToken cancellationToken)
     {
-        var errors = Validate(input, out var tipo, validarSnapshot: true);
+        var errors = Validate(input, input.Snapshot, out var tipo);
         if (errors.Count > 0)
         {
             return Results.ValidationProblem(errors);
@@ -71,7 +71,7 @@ public static class FichaEndpoints
             return Results.NotFound();
         }
 
-        var errors = Validate(input, out var tipo, validarSnapshot: false);
+        var errors = Validate(input, ficha.Snapshot, out var tipo);
         if (errors.Count > 0)
         {
             return Results.ValidationProblem(errors);
@@ -99,7 +99,10 @@ public static class FichaEndpoints
         return Results.NoContent();
     }
 
-    private static Dictionary<string, string[]> Validate(FichaInput input, out TipoFicha tipo, bool validarSnapshot)
+    private static Dictionary<string, string[]> Validate(
+        FichaInput input,
+        Snapshot? snapshot,
+        out TipoFicha tipo)
     {
         var errors = new Dictionary<string, string[]>();
         tipo = default;
@@ -117,7 +120,7 @@ public static class FichaEndpoints
         {
             errors[nameof(input.Tipo)] = ["El Tipo debe ser Película, Serie, Libro, Juego o Cómic."];
         }
-        else if (validarSnapshot && input.Snapshot is { } snapshot)
+        else if (snapshot is not null)
         {
             if (string.IsNullOrWhiteSpace(snapshot.IdExterno))
             {

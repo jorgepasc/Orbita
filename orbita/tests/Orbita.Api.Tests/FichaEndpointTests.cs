@@ -174,6 +174,45 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
     }
 
     [Fact]
+    public async Task Update_rejects_a_tipo_incompatible_with_the_immutable_snapshot()
+    {
+        await AuthenticateAsync();
+
+        using var createResponse = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Dune",
+            tipo = "Película",
+            terminado = false,
+            snapshot = new
+            {
+                fuente = "tmdb",
+                idExterno = "438631",
+                portada = (string?)null,
+                anio = 2021,
+                autoria = "Denis Villeneuve",
+                notaExterna = (decimal?)null,
+                generos = Array.Empty<string>()
+            }
+        });
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var created = await createResponse.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.NotNull(created);
+
+        using var updateResponse = await client.PutAsJsonAsync($"/api/fichas/{created.Id}", new
+        {
+            titulo = "Dune",
+            tipo = "Libro",
+            terminado = false
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
+        using var getResponse = await client.GetAsync($"/api/fichas/{created.Id}");
+        var unchanged = await getResponse.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.Equal("Película", unchanged?.Tipo);
+        Assert.Equal("tmdb", unchanged?.Snapshot?.Fuente);
+    }
+
+    [Fact]
     public async Task Create_rejects_a_snapshot_from_a_source_incompatible_with_the_tipo()
     {
         await AuthenticateAsync();
