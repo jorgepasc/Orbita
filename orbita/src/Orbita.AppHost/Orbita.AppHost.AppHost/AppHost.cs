@@ -16,7 +16,9 @@ foreach (var (configurationKey, environmentKey) in new[]
     ("Authentication:SigningKey", "Authentication__SigningKey"),
     ("Authentication:Issuer", "Authentication__Issuer"),
     ("Authentication:Audience", "Authentication__Audience"),
-    ("Authentication:TokenLifetimeMinutes", "Authentication__TokenLifetimeMinutes")
+    ("Authentication:TokenLifetimeMinutes", "Authentication__TokenLifetimeMinutes"),
+    ("Tmdb:BearerToken", "Tmdb__BearerToken"),
+    ("Rawg:ApiKey", "Rawg__ApiKey")
 })
 {
     if (builder.Configuration[configurationKey] is { } value)
