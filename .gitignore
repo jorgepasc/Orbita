@@ -6,6 +6,7 @@
 # Tooling local de agentes
 .agents/
 .scratch/
+skills-lock.json
 .vs/
 
 # OS
