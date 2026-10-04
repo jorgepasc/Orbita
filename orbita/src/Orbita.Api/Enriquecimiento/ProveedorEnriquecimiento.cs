@@ -14,6 +14,8 @@ public interface IProveedorEnriquecimiento
     FuenteSnapshot Fuente { get; }
 
     Task<IReadOnlyList<Resultado>> BuscarAsync(TipoFicha tipo, string texto, CancellationToken cancellationToken);
+
+    Task<Snapshot> ConstruirSnapshotAsync(TipoFicha tipo, string idExterno, CancellationToken cancellationToken);
 }
 
 public sealed class ApiExternaException(string mensaje) : Exception(mensaje);

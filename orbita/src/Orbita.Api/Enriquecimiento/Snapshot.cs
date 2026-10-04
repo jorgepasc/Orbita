@@ -18,12 +18,12 @@ public sealed class FuenteSnapshotJsonConverter : JsonConverter<FuenteSnapshot>
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options) => reader.GetString() switch
-    {
-        "tmdb" => FuenteSnapshot.Tmdb,
-        "rawg" => FuenteSnapshot.Rawg,
-        "openlibrary" => FuenteSnapshot.OpenLibrary,
-        _ => throw new JsonException($"Fuente del Snapshot desconocida: {reader.GetString()}")
-    };
+        {
+            "tmdb" => FuenteSnapshot.Tmdb,
+            "rawg" => FuenteSnapshot.Rawg,
+            "openlibrary" => FuenteSnapshot.OpenLibrary,
+            _ => throw new JsonException($"Fuente del Snapshot desconocida: {reader.GetString()}")
+        };
 
     public override void Write(
         Utf8JsonWriter writer,

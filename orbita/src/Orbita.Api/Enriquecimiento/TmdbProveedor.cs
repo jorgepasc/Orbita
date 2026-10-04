@@ -17,6 +17,7 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
 {
     private const string BaseUrl = "https://api.themoviedb.org/3";
     private const string TamanoBusqueda = "w154";
+    private const string TamanoDetalle = "w500";
 
     public FuenteSnapshot Fuente => FuenteSnapshot.Tmdb;
 
@@ -36,6 +37,28 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
             Anio.DesdeFecha(resultado.ReleaseDate ?? resultado.FirstAirDate),
             resultado.PosterPath is null ? null : $"https://image.tmdb.org/t/p/{TamanoBusqueda}{resultado.PosterPath}",
             resultado.VoteAverage))];
+    }
+
+    public async Task<Snapshot> ConstruirSnapshotAsync(
+        TipoFicha tipo,
+        string idExterno,
+        CancellationToken cancellationToken)
+    {
+        var url = tipo == TipoFicha.Pelicula
+            ? $"{BaseUrl}/movie/{Uri.EscapeDataString(idExterno)}?language=es-ES&append_to_response=credits"
+            : $"{BaseUrl}/tv/{Uri.EscapeDataString(idExterno)}?language=es-ES";
+        var detalle = await GetJsonAsync<DetalleTmdb>(url, cancellationToken);
+
+        return new Snapshot(
+            Fuente,
+            detalle.Id.ToString(),
+            detalle.PosterPath is null ? null : $"https://image.tmdb.org/t/p/{TamanoDetalle}{detalle.PosterPath}",
+            Anio.DesdeFecha(detalle.ReleaseDate ?? detalle.FirstAirDate),
+            tipo == TipoFicha.Pelicula
+                ? detalle.Credits?.Crew?.FirstOrDefault(miembro => miembro.Job == "Director")?.Name
+                : detalle.CreatedBy?.FirstOrDefault()?.Name,
+            detalle.VoteAverage,
+            [.. (detalle.Genres ?? []).Select(genero => genero.Name)]);
     }
 
     private async Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
@@ -65,4 +88,24 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
         [property: JsonPropertyName("first_air_date")] string? FirstAirDate,
         [property: JsonPropertyName("poster_path")] string? PosterPath,
         [property: JsonPropertyName("vote_average")] decimal? VoteAverage);
+
+    private sealed record DetalleTmdb(
+        int Id,
+        [property: JsonPropertyName("title")] string? Title,
+        [property: JsonPropertyName("name")] string? Name,
+        [property: JsonPropertyName("release_date")] string? ReleaseDate,
+        [property: JsonPropertyName("first_air_date")] string? FirstAirDate,
+        [property: JsonPropertyName("poster_path")] string? PosterPath,
+        [property: JsonPropertyName("vote_average")] decimal? VoteAverage,
+        List<GeneroTmdb>? Genres,
+        [property: JsonPropertyName("created_by")] List<CreadorTmdb>? CreatedBy,
+        CreditosTmdb? Credits);
+
+    private sealed record GeneroTmdb(string Name);
+
+    private sealed record CreadorTmdb(string Name);
+
+    private sealed record CreditosTmdb(List<MiembroCrewTmdb>? Crew);
+
+    private sealed record MiembroCrewTmdb(string Name, string Job);
 }

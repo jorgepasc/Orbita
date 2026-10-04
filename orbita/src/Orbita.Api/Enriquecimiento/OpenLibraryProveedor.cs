@@ -34,6 +34,29 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
             null))];
     }
 
+    public async Task<Snapshot> ConstruirSnapshotAsync(
+        TipoFicha tipo,
+        string idExterno,
+        CancellationToken cancellationToken)
+    {
+        var busqueda = await GetJsonAsync<BusquedaOpenLibrary>(
+            $"{BaseUrl}/search.json?q=key:{Uri.EscapeDataString(idExterno)}&limit=1",
+            cancellationToken);
+        var documento = busqueda.Docs.FirstOrDefault()
+            ?? throw new ApiExternaException($"Open Library no encontró la obra {idExterno}.");
+
+        return new Snapshot(
+            Fuente,
+            documento.Key,
+            documento.CoverI is { } portada
+                ? $"https://covers.openlibrary.org/b/id/{portada}-L.jpg"
+                : null,
+            documento.FirstPublishYear,
+            documento.AuthorName?.FirstOrDefault(),
+            null,
+            [.. (documento.Subject ?? []).Take(5)]);
+    }
+
     private async Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
     {
         using var response = await http.GetAsync(url, cancellationToken);
@@ -52,5 +75,7 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
         string Key,
         string Title,
         int? CoverI,
-        int? FirstPublishYear);
+        int? FirstPublishYear,
+        string[]? AuthorName,
+        string[]? Subject);
 }

@@ -41,6 +41,26 @@ public sealed class RawgProveedor(HttpClient http, IOptions<RawgOptions> options
             juego.Metacritic))];
     }
 
+    public async Task<Snapshot> ConstruirSnapshotAsync(
+        TipoFicha tipo,
+        string idExterno,
+        CancellationToken cancellationToken)
+    {
+        var clave = Uri.EscapeDataString(options.Value.ApiKey ?? string.Empty);
+        var detalle = await GetJsonAsync<DetalleRawg>(
+            $"{BaseUrl}/games/{Uri.EscapeDataString(idExterno)}?key={clave}",
+            cancellationToken);
+
+        return new Snapshot(
+            Fuente,
+            detalle.Id.ToString(),
+            detalle.BackgroundImage,
+            Anio.DesdeFecha(detalle.Released),
+            detalle.Developers?.FirstOrDefault()?.Name,
+            detalle.Metacritic,
+            [.. (detalle.Genres ?? []).Select(genero => genero.Name)]);
+    }
+
     private async Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
     {
         using var response = await http.GetAsync(url, cancellationToken);
@@ -61,4 +81,17 @@ public sealed class RawgProveedor(HttpClient http, IOptions<RawgOptions> options
         string? BackgroundImage,
         string? Released,
         int? Metacritic);
+
+    private sealed record DetalleRawg(
+        int Id,
+        string Name,
+        string? BackgroundImage,
+        string? Released,
+        int? Metacritic,
+        List<DesarrolladorRawg>? Developers,
+        List<GeneroRawg>? Genres);
+
+    private sealed record DesarrolladorRawg(string Name);
+
+    private sealed record GeneroRawg(string Name);
 }

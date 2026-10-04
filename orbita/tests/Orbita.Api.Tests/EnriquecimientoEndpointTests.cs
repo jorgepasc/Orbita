@@ -207,6 +207,177 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Snapshot_for_pelicula_freezes_tmdb_detail_with_the_director()
+    {
+        await AuthenticateAsync();
+        apisExternas.Responder(
+            "api.themoviedb.org/3/movie/438631",
+            """
+            {
+              "id": 438631,
+              "title": "Dune",
+              "release_date": "2021-09-15",
+              "poster_path": "/dune.jpg",
+              "vote_average": 7.8,
+              "genres": [
+                { "id": 878, "name": "Ciencia ficción" },
+                { "id": 12, "name": "Aventura" }
+              ],
+              "credits": {
+                "crew": [
+                  { "name": "Denis Villeneuve", "job": "Director" },
+                  { "name": "Jon Spaihts", "job": "Screenplay" }
+                ]
+              }
+            }
+            """);
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Pel%C3%ADcula&idExterno=438631");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Equal("tmdb", snapshot.Fuente);
+        Assert.Equal("438631", snapshot.IdExterno);
+        Assert.Equal("https://image.tmdb.org/t/p/w500/dune.jpg", snapshot.Portada);
+        Assert.Equal(2021, snapshot.Anio);
+        Assert.Equal("Denis Villeneuve", snapshot.Autoria);
+        Assert.Equal(7.8m, snapshot.NotaExterna);
+        Assert.Equal(["Ciencia ficción", "Aventura"], snapshot.Generos);
+
+        var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("/3/movie/438631"));
+        Assert.Contains("language=es-ES", solicitud);
+        Assert.Contains("append_to_response=credits", solicitud);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_serie_uses_the_creator_from_the_tv_detail()
+    {
+        await AuthenticateAsync();
+        apisExternas.Responder(
+            "api.themoviedb.org/3/tv/94997",
+            """
+            {
+              "id": 94997,
+              "name": "La casa del dragón",
+              "first_air_date": "2022-08-21",
+              "poster_path": null,
+              "vote_average": 8.5,
+              "genres": [
+                { "id": 10765, "name": "Sci-Fi & Fantasy" }
+              ],
+              "created_by": [
+                { "id": 19303, "name": "Ryan Condal" }
+              ]
+            }
+            """);
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Serie&idExterno=94997");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Equal("tmdb", snapshot.Fuente);
+        Assert.Equal("94997", snapshot.IdExterno);
+        Assert.Null(snapshot.Portada);
+        Assert.Equal(2022, snapshot.Anio);
+        Assert.Equal("Ryan Condal", snapshot.Autoria);
+        Assert.Equal(["Sci-Fi & Fantasy"], snapshot.Generos);
+
+        Assert.Single(apisExternas.SolicitudesQueContienen("/3/tv/94997"));
+    }
+
+    [Fact]
+    public async Task Snapshot_for_juego_uses_the_rawg_detail_with_metacritic()
+    {
+        await AuthenticateAsync();
+        apisExternas.Responder(
+            "api.rawg.io/api/games/58175",
+            """
+            {
+              "id": 58175,
+              "name": "God of War",
+              "background_image": "https://media.rawg.io/kratos.jpg",
+              "released": "2018-04-20",
+              "metacritic": 94,
+              "developers": [
+                { "id": 159, "name": "Santa Monica Studio" }
+              ],
+              "genres": [
+                { "id": 4, "name": "Action" }
+              ]
+            }
+            """);
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Juego&idExterno=58175");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Equal("rawg", snapshot.Fuente);
+        Assert.Equal("58175", snapshot.IdExterno);
+        Assert.Equal("https://media.rawg.io/kratos.jpg", snapshot.Portada);
+        Assert.Equal(2018, snapshot.Anio);
+        Assert.Equal("Santa Monica Studio", snapshot.Autoria);
+        Assert.Equal(94m, snapshot.NotaExterna);
+        Assert.Equal(["Action"], snapshot.Generos);
+
+        var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("api.rawg.io/api/games/58175"));
+        Assert.Contains("key=test-rawg-key", solicitud);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_libro_uses_open_library_and_caps_the_subjects()
+    {
+        await AuthenticateAsync();
+        apisExternas.Responder(
+            "openlibrary.org/search.json",
+            """
+            {
+              "docs": [
+                {
+                  "key": "/works/OL45804W",
+                  "title": "El nombre del viento",
+                  "cover_i": 8225417,
+                  "first_publish_year": 2007,
+                  "author_name": ["Patrick Rothfuss"],
+                  "subject": ["Fantasy", "Fiction", "Magic", "Kvothe", "Epic", "Extra"]
+                }
+              ]
+            }
+            """);
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Libro&idExterno=%2Fworks%2FOL45804W");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Equal("openlibrary", snapshot.Fuente);
+        Assert.Equal("/works/OL45804W", snapshot.IdExterno);
+        Assert.Equal("https://covers.openlibrary.org/b/id/8225417-L.jpg", snapshot.Portada);
+        Assert.Equal(2007, snapshot.Anio);
+        Assert.Equal("Patrick Rothfuss", snapshot.Autoria);
+        Assert.Null(snapshot.NotaExterna);
+        Assert.Equal(["Fantasy", "Fiction", "Magic", "Kvothe", "Epic"], snapshot.Generos);
+
+        var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/search.json"));
+        Assert.Contains("q=key:%2Fworks%2FOL45804W", solicitud);
+    }
+
+    [Fact]
+    public async Task Snapshot_requires_authentication()
+    {
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Pel%C3%ADcula&idExterno=438631");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     private async Task AuthenticateAsync()
     {
         using var loginResponse = await client.PostAsJsonAsync(
