@@ -25,9 +25,9 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
         string texto,
         CancellationToken cancellationToken)
     {
-        var ruta = tipo == TipoFicha.Pelicula ? "movie" : "tv";
+        var configuracion = Configuracion(tipo);
         var busqueda = await GetJsonAsync<BusquedaTmdb>(
-            $"{BaseUrl}/search/{ruta}?query={Uri.EscapeDataString(texto)}&language=es-ES",
+            $"{BaseUrl}/search/{configuracion.Ruta}?query={Uri.EscapeDataString(texto)}&language=es-ES",
             cancellationToken);
 
         return [.. (busqueda.Results ?? []).Take(20).Select(resultado => new Resultado(
@@ -43,9 +43,9 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
         string idExterno,
         CancellationToken cancellationToken)
     {
-        var url = tipo == TipoFicha.Pelicula
-            ? $"{BaseUrl}/movie/{Uri.EscapeDataString(idExterno)}?language=es-ES&append_to_response=credits"
-            : $"{BaseUrl}/tv/{Uri.EscapeDataString(idExterno)}?language=es-ES";
+        var configuracion = Configuracion(tipo);
+        var anexarCreditos = configuracion.EsPelicula ? "&append_to_response=credits" : string.Empty;
+        var url = $"{BaseUrl}/{configuracion.Ruta}/{Uri.EscapeDataString(idExterno)}?language=es-ES{anexarCreditos}";
         var detalle = await GetJsonAsync<DetalleTmdb>(url, cancellationToken);
 
         return new Snapshot(
@@ -53,7 +53,7 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
             detalle.Id.ToString(),
             detalle.PosterPath is null ? null : $"https://image.tmdb.org/t/p/{TamanoDetalle}{detalle.PosterPath}",
             Anio.DesdeFecha(detalle.ReleaseDate ?? detalle.FirstAirDate),
-            tipo == TipoFicha.Pelicula
+            configuracion.EsPelicula
                 ? detalle.Credits?.Crew?.FirstOrDefault(miembro => miembro.Job == "Director")?.Name
                 : detalle.CreatedBy?.FirstOrDefault()?.Name,
             detalle.VoteAverage,
@@ -68,6 +68,13 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
 
         return ClienteJsonExterno.EnviarAsync<T>(http, request, "TMDB", null, cancellationToken);
     }
+
+    private static ConfiguracionTipoTmdb Configuracion(TipoFicha tipo) => tipo switch
+    {
+        TipoFicha.Pelicula => new("movie", true),
+        TipoFicha.Serie => new("tv", false),
+        _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Tipo sin proveedor TMDB.")
+    };
 
     private sealed record BusquedaTmdb(
         [property: JsonPropertyName("results")] List<ResultadoTmdb>? Results);
@@ -100,4 +107,6 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
     private sealed record CreditosTmdb(List<MiembroCrewTmdb>? Crew);
 
     private sealed record MiembroCrewTmdb(string Name, string Job);
+
+    private sealed record ConfiguracionTipoTmdb(string Ruta, bool EsPelicula);
 }

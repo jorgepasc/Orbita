@@ -45,9 +45,7 @@ public static class EnriquecimientoEndpoints
         }
         catch (Exception exception) when (EsFalloApiExterna(exception))
         {
-            return Results.Problem(
-                statusCode: StatusCodes.Status502BadGateway,
-                title: "No se pudo consultar la API externa.");
+            return ProblemaApiExterna();
         }
     }
 
@@ -83,11 +81,13 @@ public static class EnriquecimientoEndpoints
         }
         catch (Exception exception) when (EsFalloApiExterna(exception))
         {
-            return Results.Problem(
-                statusCode: StatusCodes.Status502BadGateway,
-                title: "No se pudo consultar la API externa.");
+            return ProblemaApiExterna();
         }
     }
+
+    private static IResult ProblemaApiExterna() => Results.Problem(
+        statusCode: StatusCodes.Status502BadGateway,
+        title: "No se pudo consultar la API externa.");
 
     private static bool EsFalloApiExterna(Exception exception) =>
         exception is ApiExternaException or HttpRequestException or JsonException;
