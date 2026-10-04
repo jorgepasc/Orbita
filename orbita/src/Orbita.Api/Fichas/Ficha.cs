@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Orbita.Api.Enriquecimiento;
 
 namespace Orbita.Api.Fichas;
 
@@ -20,5 +20,5 @@ public sealed class Ficha
 
     public string? Compania { get; set; }
 
-    public JsonDocument? Snapshot { get; set; }
+    public Snapshot? Snapshot { get; set; }
 }

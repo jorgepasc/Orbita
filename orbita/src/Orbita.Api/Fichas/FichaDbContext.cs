@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Orbita.Api.Enriquecimiento;
 
 namespace Orbita.Api.Fichas;
 
@@ -25,8 +27,8 @@ public sealed class FichaDbContext(DbContextOptions<FichaDbContext> options) : D
         ficha.Property(value => value.Compania).HasMaxLength(200);
         ficha.Property(value => value.Snapshot)
             .HasConversion(
-                snapshot => snapshot!.RootElement.GetRawText(),
-                json => System.Text.Json.JsonDocument.Parse(json))
+                snapshot => JsonSerializer.Serialize(snapshot, (JsonSerializerOptions?)null),
+                json => JsonSerializer.Deserialize<Snapshot>(json, (JsonSerializerOptions?)null))
             .HasColumnType("jsonb");
     }
 }

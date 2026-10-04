@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Orbita.Api.Enriquecimiento;
 
 namespace Orbita.Api.Fichas;
 
@@ -43,7 +44,7 @@ public static class FichaEndpoints
         FichaDbContext database,
         CancellationToken cancellationToken)
     {
-        var errors = Validate(input, out var tipo);
+        var errors = Validate(input, out var tipo, validarSnapshot: true);
         if (errors.Count > 0)
         {
             return Results.ValidationProblem(errors);
@@ -51,6 +52,7 @@ public static class FichaEndpoints
 
         var ficha = new Ficha();
         Apply(input, tipo, ficha);
+        ficha.Snapshot = input.Snapshot;
         database.Fichas.Add(ficha);
         await database.SaveChangesAsync(cancellationToken);
 
@@ -69,7 +71,7 @@ public static class FichaEndpoints
             return Results.NotFound();
         }
 
-        var errors = Validate(input, out var tipo);
+        var errors = Validate(input, out var tipo, validarSnapshot: false);
         if (errors.Count > 0)
         {
             return Results.ValidationProblem(errors);
@@ -97,7 +99,7 @@ public static class FichaEndpoints
         return Results.NoContent();
     }
 
-    private static Dictionary<string, string[]> Validate(FichaInput input, out TipoFicha tipo)
+    private static Dictionary<string, string[]> Validate(FichaInput input, out TipoFicha tipo, bool validarSnapshot)
     {
         var errors = new Dictionary<string, string[]>();
         tipo = default;
@@ -114,6 +116,18 @@ public static class FichaEndpoints
         if (!TiposFicha.TryParse(input.Tipo, out tipo))
         {
             errors[nameof(input.Tipo)] = ["El Tipo debe ser Película, Serie, Libro, Juego o Cómic."];
+        }
+        else if (validarSnapshot && input.Snapshot is { } snapshot)
+        {
+            if (string.IsNullOrWhiteSpace(snapshot.IdExterno))
+            {
+                errors["snapshot.idExterno"] = ["El Snapshot necesita un idExterno."];
+            }
+            else if (!FuentesSnapshot.EsCompatible(snapshot.Fuente, tipo))
+            {
+                errors["snapshot.fuente"] =
+                    [$"La fuente '{FuentesSnapshot.Nombre(snapshot.Fuente)}' no es válida para el Tipo {TiposFicha.Nombre(tipo)}."];
+            }
         }
 
         if (input.Terminado && input.Fecha is null)
@@ -158,7 +172,8 @@ public sealed record FichaInput(
     bool Terminado,
     decimal? Valoracion,
     string? Comentarios,
-    string? Compania);
+    string? Compania,
+    Snapshot? Snapshot);
 
 public sealed record FichaResponse(
     Guid Id,
@@ -168,7 +183,8 @@ public sealed record FichaResponse(
     bool Terminado,
     decimal? Valoracion,
     string? Comentarios,
-    string? Compania)
+    string? Compania,
+    Snapshot? Snapshot)
 {
     public static FichaResponse From(Ficha ficha) => new(
         ficha.Id,
@@ -178,5 +194,6 @@ public sealed record FichaResponse(
         ficha.Terminado,
         ficha.Valoracion,
         ficha.Comentarios,
-        ficha.Compania);
+        ficha.Compania,
+        ficha.Snapshot);
 }

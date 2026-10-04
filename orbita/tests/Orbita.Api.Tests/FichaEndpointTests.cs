@@ -82,6 +82,141 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         Assert.Equal("Solo", ficha.Compania);
     }
 
+    [Fact]
+    public async Task Create_with_snapshot_persists_the_frozen_snapshot()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Dune",
+            tipo = "Película",
+            terminado = false,
+            snapshot = new
+            {
+                fuente = "tmdb",
+                idExterno = "438631",
+                portada = "https://image.tmdb.org/t/p/w500/dune.jpg",
+                anio = 2021,
+                autoria = "Denis Villeneuve",
+                notaExterna = 7.8m,
+                generos = new[] { "Ciencia ficción", "Aventura" }
+            }
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var ficha = await response.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.NotNull(ficha?.Snapshot);
+        Assert.Equal("tmdb", ficha.Snapshot.Fuente);
+        Assert.Equal("438631", ficha.Snapshot.IdExterno);
+        Assert.Equal("https://image.tmdb.org/t/p/w500/dune.jpg", ficha.Snapshot.Portada);
+        Assert.Equal(2021, ficha.Snapshot.Anio);
+        Assert.Equal("Denis Villeneuve", ficha.Snapshot.Autoria);
+        Assert.Equal(7.8m, ficha.Snapshot.NotaExterna);
+        Assert.Equal(["Ciencia ficción", "Aventura"], ficha.Snapshot.Generos);
+    }
+
+    [Fact]
+    public async Task Update_does_not_modify_the_frozen_snapshot()
+    {
+        await AuthenticateAsync();
+
+        using var createResponse = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Dune",
+            tipo = "Película",
+            fecha = "2025-02-01",
+            terminado = true,
+            snapshot = new
+            {
+                fuente = "tmdb",
+                idExterno = "438631",
+                portada = (string?)null,
+                anio = 2021,
+                autoria = "Denis Villeneuve",
+                notaExterna = (decimal?)null,
+                generos = Array.Empty<string>()
+            }
+        });
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var created = await createResponse.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.NotNull(created?.Snapshot);
+
+        using var updateResponse = await client.PutAsJsonAsync($"/api/fichas/{created.Id}", new
+        {
+            titulo = "Dune (reedición extendida)",
+            tipo = "Película",
+            fecha = "2025-02-02",
+            terminado = true,
+            valoracion = 9.0m,
+            snapshot = new
+            {
+                fuente = "rawg",
+                idExterno = "otro",
+                portada = (string?)null,
+                anio = 1999,
+                autoria = (string?)null,
+                notaExterna = (decimal?)null,
+                generos = Array.Empty<string>()
+            }
+        });
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        var updated = await updateResponse.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.Equal("Dune (reedición extendida)", updated?.Titulo);
+        Assert.NotNull(updated?.Snapshot);
+        Assert.Equal("tmdb", updated.Snapshot.Fuente);
+        Assert.Equal("438631", updated.Snapshot.IdExterno);
+
+        using var getResponse = await client.GetAsync($"/api/fichas/{created.Id}");
+        var fetched = await getResponse.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.Equal("tmdb", fetched?.Snapshot?.Fuente);
+    }
+
+    [Fact]
+    public async Task Create_rejects_a_snapshot_from_a_source_incompatible_with_the_tipo()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Ficha con fuente cruzada",
+            tipo = "Libro",
+            terminado = false,
+            snapshot = new
+            {
+                fuente = "tmdb",
+                idExterno = "438631",
+                portada = (string?)null,
+                anio = 2021,
+                autoria = (string?)null,
+                notaExterna = (decimal?)null,
+                generos = Array.Empty<string>()
+            }
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var problem = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.Equal("snapshot.fuente", problem!.RootElement.GetProperty("errors").EnumerateObject().First().Name);
+    }
+
+    [Fact]
+    public async Task Create_without_snapshot_keeps_the_ficha_manual()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Ficha manual",
+            tipo = "Cómic",
+            terminado = false
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var ficha = await response.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.Null(ficha?.Snapshot);
+    }
+
     [Theory]
     [InlineData("Película")]
     [InlineData("Serie")]
@@ -218,7 +353,17 @@ internal sealed record FichaResponse(
     bool Terminado,
     decimal? Valoracion,
     string? Comentarios,
-    string? Compania);
+    string? Compania,
+    SnapshotResponse? Snapshot);
+
+internal sealed record SnapshotResponse(
+    string Fuente,
+    string IdExterno,
+    string? Portada,
+    int? Anio,
+    string? Autoria,
+    decimal? NotaExterna,
+    string[] Generos);
 
 internal sealed record LoginRequest(string Username, string Password);
 
