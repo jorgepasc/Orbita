@@ -19,13 +19,20 @@ export class EnriquecimientoPanel {
   protected readonly buscando = signal(false);
   protected readonly resultados = signal<Resultado[]>([]);
   protected readonly errorMessage = signal<string | null>(null);
-  protected readonly busco = signal(false);
+  protected readonly busquedaRealizada = signal(false);
+  private versionTipo = 0;
+  private numeroBusqueda = 0;
+  private numeroSnapshot = 0;
 
   constructor() {
     effect(() => {
       this.tipo();
+      this.versionTipo += 1;
+      this.numeroBusqueda += 1;
+      this.numeroSnapshot += 1;
       this.resultados.set([]);
-      this.busco.set(false);
+      this.busquedaRealizada.set(false);
+      this.buscando.set(false);
       this.errorMessage.set(null);
     });
   }
@@ -41,15 +48,26 @@ export class EnriquecimientoPanel {
       return;
     }
 
+    const tipo = this.tipo();
+    const versionTipo = this.versionTipo;
+    const numeroBusqueda = ++this.numeroBusqueda;
     this.buscando.set(true);
     this.errorMessage.set(null);
-    this.api.resultados(texto, this.tipo()).subscribe({
+    this.api.resultados(texto, tipo).subscribe({
       next: (resultados) => {
+        if (!this.busquedaSigueVigente(tipo, versionTipo, numeroBusqueda)) {
+          return;
+        }
+
         this.resultados.set(resultados);
-        this.busco.set(true);
+        this.busquedaRealizada.set(true);
         this.buscando.set(false);
       },
       error: () => {
+        if (!this.busquedaSigueVigente(tipo, versionTipo, numeroBusqueda)) {
+          return;
+        }
+
         this.buscando.set(false);
         this.errorMessage.set(
           'No se pudo consultar la API externa. Prueba de nuevo o añade la Ficha manualmente.',
@@ -59,18 +77,41 @@ export class EnriquecimientoPanel {
   }
 
   protected elegir(resultado: Resultado): void {
+    const tipo = this.tipo();
+    const versionTipo = this.versionTipo;
+    const numeroSnapshot = ++this.numeroSnapshot;
     this.buscando.set(true);
-    this.api.snapshot(this.tipo(), resultado.idExterno).subscribe({
+    this.api.snapshot(tipo, resultado.idExterno).subscribe({
       next: (snapshot) => {
+        if (!this.tipoSigueVigente(tipo, versionTipo) || numeroSnapshot !== this.numeroSnapshot) {
+          return;
+        }
+
         this.buscando.set(false);
         this.elegido.emit({ snapshot, titulo: resultado.titulo });
       },
       error: () => {
+        if (!this.tipoSigueVigente(tipo, versionTipo) || numeroSnapshot !== this.numeroSnapshot) {
+          return;
+        }
+
         this.buscando.set(false);
         this.errorMessage.set(
           'No se pudo congelar el Snapshot. Prueba de nuevo o añade la Ficha manualmente.',
         );
       },
     });
+  }
+
+  private busquedaSigueVigente(
+    tipo: TipoFicha,
+    versionTipo: number,
+    numeroBusqueda: number,
+  ): boolean {
+    return this.tipoSigueVigente(tipo, versionTipo) && numeroBusqueda === this.numeroBusqueda;
+  }
+
+  private tipoSigueVigente(tipo: TipoFicha, versionTipo: number): boolean {
+    return tipo === this.tipo() && versionTipo === this.versionTipo;
   }
 }

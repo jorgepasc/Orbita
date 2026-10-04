@@ -30,7 +30,7 @@
     <p class="feedback error" role="alert">{{ message }}</p>
   }
 
-  @if (busco() && !buscando() && resultados().length === 0) {
+  @if (busquedaRealizada() && !buscando() && resultados().length === 0) {
     <p class="sin-resultados">
       Sin resultados. Prueba con otro título o añade la Ficha manualmente.
     </p>

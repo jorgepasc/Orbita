@@ -17,13 +17,13 @@ Windows PowerShell 5.1):
 
 ```powershell
 dotnet user-secrets set "Authentication:Username" "tu-usuario" --project src/Orbita.AppHost/Orbita.AppHost.AppHost
-dotnet user-secrets set "Authentication:Password" "tu-contraseña" --project src/Orbita.AppHost/Orbita.AppHost
+dotnet user-secrets set "Authentication:Password" "tu-contraseña" --project src/Orbita.AppHost/Orbita.AppHost.AppHost
 $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
 $bytes = New-Object byte[] 48
 $rng.GetBytes($bytes)
 $signingKey = [Convert]::ToBase64String($bytes)
 $rng.Dispose()
-dotnet user-secrets set "Authentication:SigningKey" $signingKey --project src/Orbita.AppHost/Orbita.AppHost
+dotnet user-secrets set "Authentication:SigningKey" $signingKey --project src/Orbita.AppHost/Orbita.AppHost.AppHost
 ```
 
 Para el Enriquecimiento, regístrate gratis en [themoviedb.org](https://www.themoviedb.org/) y
@@ -31,8 +31,8 @@ Para el Enriquecimiento, regístrate gratis en [themoviedb.org](https://www.them
 requiere clave):
 
 ```powershell
-dotnet user-secrets set "Tmdb:BearerToken" "tu-token-de-tmdb" --project src/Orbita.AppHost/Orbita.AppHost
-dotnet user-secrets set "Rawg:ApiKey" "tu-api-key-de-rawg" --project src/Orbita.AppHost/Orbita.AppHost
+dotnet user-secrets set "Tmdb:BearerToken" "tu-token-de-tmdb" --project src/Orbita.AppHost/Orbita.AppHost.AppHost
+dotnet user-secrets set "Rawg:ApiKey" "tu-api-key-de-rawg" --project src/Orbita.AppHost/Orbita.AppHost.AppHost
 ```
 
 Issuer y Audience tienen valores locales predeterminados (`Orbita` y `Orbita.Web`); también se

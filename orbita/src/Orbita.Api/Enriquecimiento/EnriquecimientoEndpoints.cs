@@ -38,15 +38,11 @@ public static class EnriquecimientoEndpoints
             return Results.ValidationProblem(errors);
         }
 
-        try
+        return await ConApiExterna(async () =>
         {
             var resultados = await proveedores.Para(tipoFicha).BuscarAsync(tipoFicha, q!.Trim(), cancellationToken);
             return Results.Ok(resultados);
-        }
-        catch (Exception exception) when (EsFalloApiExterna(exception))
-        {
-            return ProblemaApiExterna();
-        }
+        });
     }
 
     private static async Task<IResult> SnapshotAsync(
@@ -72,12 +68,20 @@ public static class EnriquecimientoEndpoints
             return Results.ValidationProblem(errors);
         }
 
-        try
+        return await ConApiExterna(async () =>
         {
             var snapshot = await proveedores
                 .Para(tipoFicha)
                 .ConstruirSnapshotAsync(tipoFicha, idExterno!.Trim(), cancellationToken);
             return Results.Ok(snapshot);
+        });
+    }
+
+    private static async Task<IResult> ConApiExterna(Func<Task<IResult>> ejecutar)
+    {
+        try
+        {
+            return await ejecutar();
         }
         catch (Exception exception) when (EsFalloApiExterna(exception))
         {

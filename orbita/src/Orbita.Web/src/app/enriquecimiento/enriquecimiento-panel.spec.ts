@@ -130,6 +130,53 @@ describe('EnriquecimientoPanel', () => {
     expect(fixture.nativeElement.querySelectorAll('.resultado').length).toBe(0);
   });
 
+  it('ignores resultados that arrive after the tipo changes', async () => {
+    await buscar('Dune');
+    const request = http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula');
+
+    fixture.componentRef.setInput('tipo', 'Libro');
+    fixture.detectChanges();
+    request.flush([
+      {
+        idExterno: '438631',
+        titulo: 'Dune',
+        anio: 2021,
+        portada: null,
+        notaExterna: null,
+      },
+    ]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.resultado').length).toBe(0);
+  });
+
+  it('does not emit a snapshot that arrives after the tipo changes', async () => {
+    const elegido = vi.fn();
+    fixture.componentInstance.elegido.subscribe(elegido);
+
+    await buscar('Dune');
+    http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula').flush([
+      {
+        idExterno: '438631',
+        titulo: 'Dune',
+        anio: 2021,
+        portada: null,
+        notaExterna: null,
+      },
+    ]);
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.resultado') as HTMLButtonElement).click();
+    const request = http.expectOne(
+      '/api/enriquecimiento/snapshot?tipo=Pel%C3%ADcula&idExterno=438631',
+    );
+
+    fixture.componentRef.setInput('tipo', 'Libro');
+    fixture.detectChanges();
+    request.flush(snapshot);
+
+    expect(elegido).not.toHaveBeenCalled();
+  });
+
   async function buscar(texto: string): Promise<void> {
     fixture.detectChanges();
     const input = fixture.nativeElement.querySelector('#consulta') as HTMLInputElement;
