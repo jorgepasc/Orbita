@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using System.Text.Json;
 using Orbita.Api.Fichas;
 
@@ -57,17 +56,13 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
             [.. (documento.Subject ?? []).Take(5)]);
     }
 
-    private async Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
-    {
-        using var response = await http.GetAsync(url, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new ApiExternaException($"Open Library respondió {(int)response.StatusCode} al consultar {url}.");
-        }
-
-        return await response.Content.ReadFromJsonAsync<T>(Json, cancellationToken)
-            ?? throw new ApiExternaException($"Open Library devolvió una respuesta vacía al consultar {url}.");
-    }
+    private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken) =>
+        ClienteJsonExterno.EnviarAsync<T>(
+            http,
+            new HttpRequestMessage(HttpMethod.Get, url),
+            "Open Library",
+            Json,
+            cancellationToken);
 
     private sealed record BusquedaOpenLibrary(List<DocumentoOpenLibrary> Docs);
 

@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Orbita.Api.Fichas;
@@ -61,17 +60,13 @@ public sealed class RawgProveedor(HttpClient http, IOptions<RawgOptions> options
             [.. (detalle.Genres ?? []).Select(genero => genero.Name)]);
     }
 
-    private async Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
-    {
-        using var response = await http.GetAsync(url, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new ApiExternaException($"RAWG respondió {(int)response.StatusCode} al consultar {url}.");
-        }
-
-        return await response.Content.ReadFromJsonAsync<T>(Json, cancellationToken)
-            ?? throw new ApiExternaException($"RAWG devolvió una respuesta vacía al consultar {url}.");
-    }
+    private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken) =>
+        ClienteJsonExterno.EnviarAsync<T>(
+            http,
+            new HttpRequestMessage(HttpMethod.Get, url),
+            "RAWG",
+            Json,
+            cancellationToken);
 
     private sealed record BusquedaRawg(List<ResultadoRawg> Results);
 

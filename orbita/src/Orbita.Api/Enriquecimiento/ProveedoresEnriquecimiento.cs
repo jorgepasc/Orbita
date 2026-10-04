@@ -7,11 +7,11 @@ public sealed class ProveedoresEnriquecimiento(
     RawgProveedor rawg,
     OpenLibraryProveedor openLibrary)
 {
-    public IProveedorEnriquecimiento Para(TipoFicha tipo) => tipo switch
+    public IProveedorEnriquecimiento Para(TipoFicha tipo) => FuentesSnapshot.PorTipo(tipo) switch
     {
-        TipoFicha.Pelicula or TipoFicha.Serie => tmdb,
-        TipoFicha.Juego => rawg,
-        TipoFicha.Libro or TipoFicha.Comic => openLibrary,
+        FuenteSnapshot.Tmdb => tmdb,
+        FuenteSnapshot.Rawg => rawg,
+        FuenteSnapshot.OpenLibrary => openLibrary,
         _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Tipo sin proveedor de enriquecimiento.")
     };
 }

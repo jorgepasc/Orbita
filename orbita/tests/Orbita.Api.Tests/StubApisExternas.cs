@@ -5,12 +5,15 @@ namespace Orbita.Api.Tests;
 
 public sealed class StubApisExternas : HttpMessageHandler
 {
-    private readonly Dictionary<string, (HttpStatusCode Estado, string Json)> respuestas = [];
+    private readonly Dictionary<string, (HttpStatusCode Estado, string? Json, Exception? Error)> respuestas = [];
 
     public List<string> Solicitudes { get; } = [];
 
     public void Responder(string urlContiene, string json, HttpStatusCode estado = HttpStatusCode.OK) =>
-        respuestas[urlContiene] = (estado, json);
+        respuestas[urlContiene] = (estado, json, null);
+
+    public void Fallar(string urlContiene, Exception error) =>
+        respuestas[urlContiene] = (HttpStatusCode.BadGateway, null, error);
 
     public void Reiniciar()
     {
@@ -32,11 +35,15 @@ public sealed class StubApisExternas : HttpMessageHandler
 
         var clave = respuestas.Keys.FirstOrDefault(url.Contains)
             ?? throw new InvalidOperationException($"No hay respuesta stubbeada para {url}.");
-        var (estado, json) = respuestas[clave];
+        var (estado, json, error) = respuestas[clave];
+        if (error is not null)
+        {
+            return Task.FromException<HttpResponseMessage>(error);
+        }
 
         return Task.FromResult(new HttpResponseMessage(estado)
         {
-            Content = new StringContent(json, Encoding.UTF8, "application/json")
+            Content = new StringContent(json ?? string.Empty, Encoding.UTF8, "application/json")
         });
     }
 }

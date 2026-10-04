@@ -199,6 +199,20 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
     }
 
     [Fact]
+    public async Task Search_returns_bad_gateway_when_the_external_connection_fails()
+    {
+        await AuthenticateAsync();
+        apisExternas.Fallar(
+            "api.themoviedb.org/3/search/movie",
+            new HttpRequestException("No se pudo establecer la conexión."));
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula");
+
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Search_requires_authentication()
     {
         using var response = await client.GetAsync(

@@ -108,14 +108,26 @@ describe('Dashboard enriquecimiento', () => {
     fixture = TestBed.createComponent(Dashboard);
     fixture.detectChanges();
     http.expectOne('/api/health').flush({ status: 'ok', databaseConfigured: true });
-    http.expectOne('/api/fichas').flush([ficha]);
+    http.expectOne('/api/fichas').flush([
+      ficha,
+      {
+        ...ficha,
+        id: 'ficha-sin-portada',
+        titulo: 'Ficha sin portada',
+        snapshot: { ...snapshot, portada: null },
+      },
+    ]);
     fixture.detectChanges();
 
-    const card = fixture.nativeElement.querySelector('.ficha-card') as HTMLElement;
+    const cards = fixture.nativeElement.querySelectorAll('.ficha-card') as NodeListOf<HTMLElement>;
+    const card = cards[0];
     expect(card.querySelector('.ficha-portada')?.getAttribute('src')).toBe(snapshot.portada);
     expect(card.textContent).toContain('Nota Externa 7.8');
     expect(card.querySelectorAll('.genero-chip').length).toBe(2);
     expect(card.textContent).toContain('Ciencia ficción');
     expect(card.textContent).toContain('Aventura');
+    expect(cards[1].querySelector('.ficha-portada-placeholder')?.textContent).toContain(
+      'Portada no disponible',
+    );
   });
 });

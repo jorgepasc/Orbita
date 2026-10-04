@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Orbita.Api.Fichas;
@@ -61,20 +60,13 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
             [.. (detalle.Genres ?? []).Select(genero => genero.Name)]);
     }
 
-    private async Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
+    private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization =
             new AuthenticationHeaderValue("Bearer", options.Value.BearerToken);
 
-        using var response = await http.SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new ApiExternaException($"TMDB respondió {(int)response.StatusCode} al consultar {url}.");
-        }
-
-        return await response.Content.ReadFromJsonAsync<T>(cancellationToken)
-            ?? throw new ApiExternaException($"TMDB devolvió una respuesta vacía al consultar {url}.");
+        return ClienteJsonExterno.EnviarAsync<T>(http, request, "TMDB", null, cancellationToken);
     }
 
     private sealed record BusquedaTmdb(

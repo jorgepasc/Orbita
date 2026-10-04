@@ -41,13 +41,15 @@ public static class FuentesSnapshot
         _ => "openlibrary"
     };
 
-    public static bool EsCompatible(FuenteSnapshot fuente, TipoFicha tipo) => (fuente, tipo) switch
+    public static FuenteSnapshot? PorTipo(TipoFicha tipo) => tipo switch
     {
-        (FuenteSnapshot.Tmdb, TipoFicha.Pelicula) or (FuenteSnapshot.Tmdb, TipoFicha.Serie) => true,
-        (FuenteSnapshot.Rawg, TipoFicha.Juego) => true,
-        (FuenteSnapshot.OpenLibrary, TipoFicha.Libro) or (FuenteSnapshot.OpenLibrary, TipoFicha.Comic) => true,
-        _ => false
+        TipoFicha.Pelicula or TipoFicha.Serie => FuenteSnapshot.Tmdb,
+        TipoFicha.Juego => FuenteSnapshot.Rawg,
+        TipoFicha.Libro or TipoFicha.Comic => FuenteSnapshot.OpenLibrary,
+        _ => null
     };
+
+    public static bool EsCompatible(FuenteSnapshot fuente, TipoFicha tipo) => PorTipo(tipo) == fuente;
 }
 
 public sealed record Snapshot(

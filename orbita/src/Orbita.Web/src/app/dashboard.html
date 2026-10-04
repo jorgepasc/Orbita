@@ -71,6 +71,10 @@
             <aside class="snapshot-preview" aria-label="Vista previa del Snapshot">
               @if (snapshot.portada; as portada) {
                 <img [src]="portada" alt="" loading="lazy" />
+              } @else {
+                <div class="snapshot-portada-placeholder" aria-hidden="true">
+                  Portada no disponible
+                </div>
               }
               <div class="snapshot-preview-details">
                 @if (snapshot.autoria) {
@@ -225,8 +229,14 @@
         <div class="ficha-grid">
           @for (ficha of fichas(); track ficha.id) {
             <article class="ficha-card">
-              @if (ficha.snapshot?.portada; as portada) {
-                <img class="ficha-portada" [src]="portada" alt="" loading="lazy" />
+              @if (ficha.snapshot; as snapshot) {
+                @if (snapshot.portada; as portada) {
+                  <img class="ficha-portada" [src]="portada" alt="" loading="lazy" />
+                } @else {
+                  <div class="ficha-portada-placeholder" aria-hidden="true">
+                    Portada no disponible
+                  </div>
+                }
               }
               <div class="card-topline">
                 <span class="type-label">{{ ficha.tipo }}</span>
