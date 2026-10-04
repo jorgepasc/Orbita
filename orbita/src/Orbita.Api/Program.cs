@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Orbita.Api.Enriquecimiento;
 using Orbita.Api.Fichas;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,6 +52,13 @@ builder.Services.AddAuthorization(options =>
 var databaseConnectionString = builder.Configuration.GetConnectionString("orbita");
 builder.Services.AddSingleton(new OrbitaDatabaseOptions(databaseConnectionString));
 builder.Services.AddDbContext<FichaDbContext>(options => options.UseNpgsql(databaseConnectionString));
+
+builder.Services.AddOptions<TmdbOptions>().BindConfiguration(TmdbOptions.SectionName);
+builder.Services.AddOptions<RawgOptions>().BindConfiguration(RawgOptions.SectionName);
+builder.Services.AddHttpClient<TmdbProveedor>();
+builder.Services.AddHttpClient<RawgProveedor>();
+builder.Services.AddHttpClient<OpenLibraryProveedor>();
+builder.Services.AddTransient<ProveedoresEnriquecimiento>();
 
 var app = builder.Build();
 
@@ -100,6 +108,7 @@ app.MapGet("/api/auth/me", (ClaimsPrincipal principal) =>
     .RequireAuthorization();
 
 app.MapFichaEndpoints();
+app.MapEnriquecimientoEndpoints();
 
 app.UseAuthentication();
 app.UseAuthorization();

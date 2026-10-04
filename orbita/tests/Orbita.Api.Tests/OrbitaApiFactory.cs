@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Orbita.Api.Enriquecimiento;
 using Orbita.Api.Fichas;
 
 namespace Orbita.Api.Tests;
@@ -13,6 +14,8 @@ namespace Orbita.Api.Tests;
 public sealed class OrbitaApiFactory : WebApplicationFactory<Program>
 {
     private readonly string databaseName = $"OrbitaTests-{Guid.NewGuid()}";
+
+    public StubApisExternas ApisExternas { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -25,7 +28,9 @@ public sealed class OrbitaApiFactory : WebApplicationFactory<Program>
                 ["Authentication:SigningKey"] = "test-signing-key-with-at-least-32-bytes",
                 ["Authentication:Issuer"] = "orbita-tests",
                 ["Authentication:Audience"] = "orbita-tests-client",
-                ["Authentication:TokenLifetimeMinutes"] = "60"
+                ["Authentication:TokenLifetimeMinutes"] = "60",
+                ["Tmdb:BearerToken"] = "test-tmdb-token",
+                ["Rawg:ApiKey"] = "test-rawg-key"
             });
         });
 
@@ -35,6 +40,11 @@ public sealed class OrbitaApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<IDbContextOptionsConfiguration<FichaDbContext>>();
             services.RemoveAll<FichaDbContext>();
             services.AddDbContext<FichaDbContext>(options => options.UseInMemoryDatabase(databaseName));
+
+            services.AddHttpClient<TmdbProveedor>().ConfigurePrimaryHttpMessageHandler(() => ApisExternas);
+            services.AddHttpClient<RawgProveedor>().ConfigurePrimaryHttpMessageHandler(() => ApisExternas);
+            services.AddHttpClient<OpenLibraryProveedor>()
+                .ConfigurePrimaryHttpMessageHandler(() => ApisExternas);
         });
     }
 
