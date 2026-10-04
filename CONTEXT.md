@@ -25,7 +25,7 @@ Nota personal de 0 a 10 con decimales, independiente de Terminado y de la Nota E
 _Avoid_: puntuación, rating
 
 **Nota Externa**:
-Valoración agregada de una fuente pública (nota de TMDB, Metacritic), capturada en el Snapshot. Nunca se compara con la Valoración en el modelo; son campos distintos.
+Valoración agregada de una fuente pública (nota de TMDB, Metacritic), capturada en el Snapshot. Nunca se compara con la Valoración en el modelo; son campos distintos. Libro y Cómic no tienen Nota Externa: ninguna API gratuita la ofrece.
 _Avoid_: nota IMDB, nota media
 
 **Compañía**:
@@ -33,12 +33,16 @@ Persona(s) con las que se disfrutó la Ficha (ej. Georgia, Family, Solo). Dato m
 _Avoid_: ver con, acompañante, estudio (el estudio/developer es otro concepto y viene de la API)
 
 **Snapshot**:
-Copia congelada de los datos de las APIs externas capturada al crear la Ficha: portada (URL de CDN), director/reparto, estudio, autor, Nota Externa, géneros e IDs externos. Navegar la app nunca llama a las APIs externas.
+Copia congelada de los datos de las APIs externas capturada al crear la Ficha: portada (URL de CDN), año, autoría (director o creador en Película/Serie, estudio en Juego, autor en Libro/Cómic), Nota Externa, géneros e IDs externos. Navegar la app nunca llama a las APIs externas.
 _Avoid_: caché, metadatos
 
 **Enriquecimiento**:
-Proceso de buscar en las APIs externas (TMDB, RAWG, Open Library) al crear una Ficha, elegir el resultado y congelarlo en el Snapshot.
+Proceso opcional al crear una Ficha: buscar en las APIs externas (TMDB para Película y Serie, RAWG para Juego, Open Library para Libro y Cómic), elegir el resultado y congelarlo en el Snapshot. Una Ficha sin Enriquecimiento es manual.
 _Avoid_: importación, scraping
+
+**Resultado**:
+Cada candidatura devuelta por una API externa durante el Enriquecimiento, aún sin congelar. Elegir un Resultado dispara su construcción como Snapshot; el Tipo lo declara el usuario, no la API (Libro y Cómic consultan la misma API).
+_Avoid_: hit, match, sugerencia
 
 ## Decisiones
 
