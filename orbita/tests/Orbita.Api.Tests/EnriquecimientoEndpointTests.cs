@@ -349,21 +349,21 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
     {
         await AuthenticateAsync();
         apisExternas.Responder(
-            "openlibrary.org/search.json",
+            "openlibrary.org/works/OL45804W.json",
             """
             {
-              "docs": [
-                {
-                  "key": "/works/OL45804W",
-                  "title": "El nombre del viento",
-                  "cover_i": 8225417,
-                  "first_publish_year": 2007,
-                  "author_name": ["Patrick Rothfuss"],
-                  "subject": ["Fantasy", "Fiction", "Magic", "Kvothe", "Epic", "Extra"]
-                }
-              ]
+              "key": "/works/OL45804W",
+              "first_publish_date": "2007",
+              "covers": [8225417],
+              "authors": [
+                { "author": { "key": "/authors/OL23919A" } }
+              ],
+              "subjects": ["Fantasy", "Fiction", "Magic", "Kvothe", "Epic", "Extra"]
             }
             """);
+        apisExternas.Responder(
+            "openlibrary.org/authors/OL23919A.json",
+            """{ "name": "Patrick Rothfuss" }""");
 
         using var response = await client.GetAsync(
             "/api/enriquecimiento/snapshot?tipo=Libro&idExterno=%2Fworks%2FOL45804W");
@@ -379,8 +379,8 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         Assert.Null(snapshot.NotaExterna);
         Assert.Equal(["Fantasy", "Fiction", "Magic", "Kvothe", "Epic"], snapshot.Generos);
 
-        var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/search.json"));
-        Assert.Contains("q=key:%2Fworks%2FOL45804W", solicitud);
+        Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/works/OL45804W.json"));
+        Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/authors/OL23919A.json"));
     }
 
     [Fact]

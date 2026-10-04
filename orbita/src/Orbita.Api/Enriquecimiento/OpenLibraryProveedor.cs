@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Orbita.Api.Fichas;
 
 namespace Orbita.Api.Enriquecimiento;
@@ -38,22 +39,51 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
         string idExterno,
         CancellationToken cancellationToken)
     {
-        var busqueda = await GetJsonAsync<BusquedaOpenLibrary>(
-            $"{BaseUrl}/search.json?q=key:{Uri.EscapeDataString(idExterno)}&limit=1",
+        var obra = await GetJsonAsync<DetalleObraOpenLibrary>(
+            UrlDeClave(idExterno, "/works/"),
             cancellationToken);
-        var documento = busqueda.Docs.FirstOrDefault()
-            ?? throw new ApiExternaException($"Open Library no encontró la obra {idExterno}.");
+        var claveAutor = obra.Authors?.FirstOrDefault()?.Author.Key;
+        string? autoria = null;
+        if (claveAutor is not null)
+        {
+            var autor = await GetJsonAsync<DetalleAutorOpenLibrary>(
+                UrlDeClave(claveAutor, "/authors/"),
+                cancellationToken);
+            autoria = autor.Name;
+        }
 
         return new Snapshot(
             Fuente,
-            documento.Key,
-            documento.CoverI is { } portada
+            string.IsNullOrWhiteSpace(obra.Key) ? idExterno : obra.Key,
+            obra.Covers?.FirstOrDefault(portada => portada > 0) is { } portada
                 ? $"https://covers.openlibrary.org/b/id/{portada}-L.jpg"
                 : null,
-            documento.FirstPublishYear,
-            documento.AuthorName?.FirstOrDefault(),
+            Anio(obra.FirstPublishDate),
+            autoria,
             null,
-            [.. (documento.Subject ?? []).Take(5)]);
+            [.. (obra.Subjects ?? []).Take(5)]);
+    }
+
+    private static string UrlDeClave(string clave, string prefijo)
+    {
+        if (!clave.StartsWith(prefijo, StringComparison.Ordinal))
+        {
+            throw new ApiExternaException("Open Library devolvió una clave de recurso no válida.");
+        }
+
+        var identificador = clave[prefijo.Length..];
+        if (identificador.Length == 0 || !identificador.All(char.IsAsciiLetterOrDigit))
+        {
+            throw new ApiExternaException("Open Library devolvió una clave de recurso no válida.");
+        }
+
+        return $"{BaseUrl}{prefijo}{Uri.EscapeDataString(identificador)}.json";
+    }
+
+    private static int? Anio(string? fechaPublicacion)
+    {
+        var coincidencia = Regex.Match(fechaPublicacion ?? string.Empty, @"\b\d{4}\b");
+        return coincidencia.Success && int.TryParse(coincidencia.Value, out var anio) ? anio : null;
     }
 
     private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken) =>
@@ -73,4 +103,17 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
         int? FirstPublishYear,
         string[]? AuthorName,
         string[]? Subject);
+
+    private sealed record DetalleObraOpenLibrary(
+        string Key,
+        string? FirstPublishDate,
+        List<int>? Covers,
+        List<AutorOpenLibrary>? Authors,
+        List<string>? Subjects);
+
+    private sealed record AutorOpenLibrary(ClaveAutorOpenLibrary Author);
+
+    private sealed record ClaveAutorOpenLibrary(string Key);
+
+    private sealed record DetalleAutorOpenLibrary(string? Name);
 }
