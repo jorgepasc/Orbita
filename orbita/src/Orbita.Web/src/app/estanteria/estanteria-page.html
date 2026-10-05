@@ -1,0 +1,98 @@
+<header class="cabecera">
+  <div>
+    <p class="eyebrow">ORBITA / {{ estanteria.nombre }}</p>
+    <h1>{{ estanteria.nombre }}</h1>
+  </div>
+  <button class="primary-button" type="button" (click)="abrirCreacion()">
+    Nueva Ficha <span aria-hidden="true">＋</span>
+  </button>
+</header>
+
+<div class="controles">
+  @if (agrupaDosTipos) {
+    <div class="segmented" role="group" aria-label="Filtrar por Tipo">
+      <button type="button" [class.activa]="filtroTipo() === null" (click)="filtroTipo.set(null)">
+        Todo
+      </button>
+      @for (tipo of estanteria.tipos; track tipo) {
+        <button type="button" [class.activa]="filtroTipo() === tipo" (click)="filtroTipo.set(tipo)">
+          {{ tipo }}
+        </button>
+      }
+    </div>
+  }
+
+  <label class="busqueda" for="busqueda">
+    <span class="sr-only">Buscar por título</span>
+    <input
+      id="busqueda"
+      name="busqueda"
+      type="search"
+      autocomplete="off"
+      placeholder="Buscar por título…"
+      [ngModel]="busqueda()"
+      (ngModelChange)="busqueda.set($event)"
+    />
+  </label>
+</div>
+
+@if (errorMessage(); as message) {
+  <p class="feedback error" role="alert">{{ message }}</p>
+}
+
+@if (cargando()) {
+  <p class="empty-state" aria-live="polite">Cargando tus Fichas…</p>
+} @else if (grupos().length === 0) {
+  <div class="empty-state">
+    <p class="empty-mark" aria-hidden="true">✳</p>
+    <h2>Nada en {{ estanteria.nombre }} todavía.</h2>
+    <p>Registra lo que has disfrutado en esta Estantería.</p>
+    <button class="secondary-button" type="button" (click)="abrirCreacion()">
+      Crear primera Ficha
+    </button>
+  </div>
+} @else {
+  @for (grupo of grupos(); track grupo.clave) {
+    <section class="mes" [attr.aria-label]="grupo.etiqueta">
+      <h2 class="mes-titulo">{{ grupo.etiqueta }}</h2>
+      <div class="grid">
+        @for (ficha of grupo.fichas; track ficha.id) {
+          <a class="tarjeta" [routerLink]="['/fichas', ficha.id]">
+            <div class="portada">
+              @if (ficha.snapshot?.portada; as portada) {
+                <img [src]="portada" alt="" loading="lazy" />
+              } @else {
+                <span class="portada-placeholder" aria-hidden="true">Sin portada</span>
+              }
+              @if (primerGenero(ficha); as genero) {
+                <span class="genero-chip">{{ genero }}</span>
+              }
+              @if (!ficha.terminado) {
+                <span class="marca-no-continuada">No continuada</span>
+              }
+            </div>
+            <h3>{{ ficha.titulo }}</h3>
+            <p class="notas">
+              @if (ficha.valoracion !== null) {
+                <span class="valoracion"
+                  ><span aria-hidden="true">✳</span> {{ ficha.valoracion }}</span
+                >
+              }
+              @if (notaExterna(ficha); as nota) {
+                <span class="nota-externa">{{ nota }}</span>
+              }
+            </p>
+          </a>
+        }
+      </div>
+    </section>
+  }
+}
+
+@if (mostrandoFormulario()) {
+  <app-ficha-form-panel
+    [tiposPermitidos]="estanteria.tipos"
+    (guardada)="alGuardar($event)"
+    (cancelada)="cerrarFormulario()"
+  />
+}

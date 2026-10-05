@@ -120,22 +120,37 @@ public static class FichaEndpoints
         {
             errors[nameof(input.Tipo)] = ["El Tipo debe ser Película, Serie, Libro, Juego o Cómic."];
         }
-        else if (snapshot is not null)
+        else
         {
-            if (string.IsNullOrWhiteSpace(snapshot.IdExterno))
+            if (snapshot is not null)
             {
-                errors["snapshot.idExterno"] = ["El Snapshot necesita un idExterno."];
+                if (string.IsNullOrWhiteSpace(snapshot.IdExterno))
+                {
+                    errors["snapshot.idExterno"] = ["El Snapshot necesita un idExterno."];
+                }
+                else if (!FuentesSnapshot.EsCompatible(snapshot.Fuente, tipo))
+                {
+                    errors["snapshot.fuente"] =
+                        [$"La fuente '{FuentesSnapshot.Nombre(snapshot.Fuente)}' no es válida para el Tipo {TiposFicha.Nombre(tipo)}."];
+                }
             }
-            else if (!FuentesSnapshot.EsCompatible(snapshot.Fuente, tipo))
+
+            if (!string.IsNullOrWhiteSpace(input.Plataforma) && tipo != TipoFicha.Juego)
             {
-                errors["snapshot.fuente"] =
-                    [$"La fuente '{FuentesSnapshot.Nombre(snapshot.Fuente)}' no es válida para el Tipo {TiposFicha.Nombre(tipo)}."];
+                errors[nameof(input.Plataforma)] =
+                    ["La Plataforma solo está disponible para el Tipo Juego."];
+            }
+
+            if (!string.IsNullOrWhiteSpace(input.Idioma) && tipo is not (TipoFicha.Libro or TipoFicha.Comic))
+            {
+                errors[nameof(input.Idioma)] =
+                    ["El Idioma solo está disponible para los Tipos Libro y Cómic."];
             }
         }
 
-        if (input.Terminado && input.Fecha is null)
+        if (input.Fecha is null)
         {
-            errors[nameof(input.Fecha)] = ["La Fecha es obligatoria para una Ficha terminada."];
+            errors[nameof(input.Fecha)] = ["La Fecha es obligatoria."];
         }
 
         if (input.Valoracion is < 0 or > 10)
@@ -153,6 +168,16 @@ public static class FichaEndpoints
             errors[nameof(input.Compania)] = ["La Compañía no puede superar los 200 caracteres."];
         }
 
+        if (input.Plataforma?.Length > 200)
+        {
+            errors[nameof(input.Plataforma)] = ["La Plataforma no puede superar los 200 caracteres."];
+        }
+
+        if (input.Idioma?.Length > 200)
+        {
+            errors[nameof(input.Idioma)] = ["El Idioma no puede superar los 200 caracteres."];
+        }
+
         return errors;
     }
 
@@ -165,6 +190,8 @@ public static class FichaEndpoints
         ficha.Valoracion = input.Valoracion;
         ficha.Comentarios = input.Comentarios;
         ficha.Compania = input.Compania;
+        ficha.Plataforma = input.Plataforma;
+        ficha.Idioma = input.Idioma;
     }
 }
 
@@ -176,6 +203,8 @@ public sealed record FichaInput(
     decimal? Valoracion,
     string? Comentarios,
     string? Compania,
+    string? Plataforma,
+    string? Idioma,
     Snapshot? Snapshot);
 
 public sealed record FichaResponse(
@@ -187,6 +216,8 @@ public sealed record FichaResponse(
     decimal? Valoracion,
     string? Comentarios,
     string? Compania,
+    string? Plataforma,
+    string? Idioma,
     Snapshot? Snapshot)
 {
     public static FichaResponse From(Ficha ficha) => new(
@@ -198,5 +229,7 @@ public sealed record FichaResponse(
         ficha.Valoracion,
         ficha.Comentarios,
         ficha.Compania,
+        ficha.Plataforma,
+        ficha.Idioma,
         ficha.Snapshot);
 }

@@ -20,5 +20,9 @@ public sealed class Ficha
 
     public string? Compania { get; set; }
 
+    public string? Plataforma { get; set; }
+
+    public string? Idioma { get; set; }
+
     public Snapshot? Snapshot { get; set; }
 }

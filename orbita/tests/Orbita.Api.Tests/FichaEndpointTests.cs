@@ -55,7 +55,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
     }
 
     [Fact]
-    public async Task Create_ficha_keeps_valuation_independent_from_completion_and_date()
+    public async Task Create_keeps_valuation_independent_from_completion()
     {
         await AuthenticateAsync();
 
@@ -63,7 +63,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         {
             titulo = "Arrival",
             tipo = "Película",
-            fecha = (DateOnly?)null,
+            fecha = "2025-01-10",
             terminado = false,
             valoracion = 8.75m,
             comentarios = "Una película para volver a ver.",
@@ -75,7 +75,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         Assert.NotNull(ficha);
         Assert.Equal("Arrival", ficha.Titulo);
         Assert.Equal("Película", ficha.Tipo);
-        Assert.Null(ficha.Fecha);
+        Assert.Equal("2025-01-10", ficha.Fecha?.ToString("yyyy-MM-dd"));
         Assert.False(ficha.Terminado);
         Assert.Equal(8.75m, ficha.Valoracion);
         Assert.Equal("Una película para volver a ver.", ficha.Comentarios);
@@ -91,6 +91,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         {
             titulo = "Dune",
             tipo = "Película",
+            fecha = "2025-01-11",
             terminado = false,
             snapshot = new
             {
@@ -182,6 +183,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         {
             titulo = "Dune",
             tipo = "Película",
+            fecha = "2025-02-03",
             terminado = false,
             snapshot = new
             {
@@ -202,6 +204,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         {
             titulo = "Dune",
             tipo = "Libro",
+            fecha = "2025-02-03",
             terminado = false
         });
 
@@ -221,6 +224,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         {
             titulo = "Ficha con fuente cruzada",
             tipo = "Libro",
+            fecha = "2025-02-04",
             terminado = false,
             snapshot = new
             {
@@ -248,6 +252,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         {
             titulo = "Ficha manual",
             tipo = "Cómic",
+            fecha = "2025-02-05",
             terminado = false
         });
 
@@ -270,6 +275,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         {
             titulo = $"Ficha de {tipo}",
             tipo,
+            fecha = "2025-02-06",
             terminado = false
         });
 
@@ -338,6 +344,7 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         {
             titulo = "Ficha inválida",
             tipo = "Juego",
+            fecha = "2025-02-07",
             terminado = false,
             valoracion
         });
@@ -354,25 +361,125 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         {
             titulo = "Ficha inválida",
             tipo = "Podcast",
+            fecha = "2025-02-08",
             terminado = false
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact]
-    public async Task Create_rejects_a_finished_ficha_without_a_fecha()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Create_rejects_a_ficha_without_a_fecha(bool terminado)
     {
         await AuthenticateAsync();
 
         using var response = await client.PostAsJsonAsync("/api/fichas", new
         {
-            titulo = "Ficha terminada sin fecha",
+            titulo = "Ficha sin fecha",
             tipo = "Película",
-            terminado = true
+            terminado
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Create_rejects_plataforma_outside_juego()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Película con plataforma",
+            tipo = "Película",
+            fecha = "2025-03-01",
+            terminado = true,
+            plataforma = "PC"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var problem = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.Equal(
+            "Plataforma",
+            problem!.RootElement.GetProperty("errors").EnumerateObject().First().Name);
+    }
+
+    [Fact]
+    public async Task Create_rejects_idioma_outside_libro_and_comic()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Juego con idioma",
+            tipo = "Juego",
+            fecha = "2025-03-02",
+            terminado = true,
+            idioma = "es"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var problem = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.Equal(
+            "Idioma",
+            problem!.RootElement.GetProperty("errors").EnumerateObject().First().Name);
+    }
+
+    [Fact]
+    public async Task Create_and_update_round_trip_plataforma_for_juego()
+    {
+        await AuthenticateAsync();
+
+        using var createResponse = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "God of War",
+            tipo = "Juego",
+            fecha = "2025-03-03",
+            terminado = true,
+            plataforma = "PS5"
+        });
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var created = await createResponse.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.Equal("PS5", created?.Plataforma);
+
+        using var updateResponse = await client.PutAsJsonAsync($"/api/fichas/{created!.Id}", new
+        {
+            titulo = "God of War",
+            tipo = "Juego",
+            fecha = "2025-03-04",
+            terminado = true,
+            plataforma = "PC"
+        });
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        var updated = await updateResponse.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.Equal("PC", updated?.Plataforma);
+
+        using var getResponse = await client.GetAsync($"/api/fichas/{created.Id}");
+        var fetched = await getResponse.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.Equal("PC", fetched?.Plataforma);
+    }
+
+    [Theory]
+    [InlineData("Libro")]
+    [InlineData("Cómic")]
+    public async Task Create_round_trips_idioma_for_libro_and_comic(string tipo)
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = $"Lectura en español ({tipo})",
+            tipo,
+            fecha = "2025-03-05",
+            terminado = true,
+            idioma = "es"
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var ficha = await response.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.Equal("es", ficha?.Idioma);
     }
 
     private async Task AuthenticateAsync()
@@ -393,6 +500,8 @@ internal sealed record FichaResponse(
     decimal? Valoracion,
     string? Comentarios,
     string? Compania,
+    string? Plataforma,
+    string? Idioma,
     SnapshotResponse? Snapshot);
 
 internal sealed record SnapshotResponse(

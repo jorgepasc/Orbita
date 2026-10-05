@@ -39,6 +39,14 @@ namespace Orbita.Api.Fichas.Migrations
                     b.Property<DateOnly?>("Fecha")
                         .HasColumnType("date");
 
+                    b.Property<string>("Idioma")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Plataforma")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("Snapshot")
                         .HasColumnType("jsonb");
 

@@ -18,6 +18,23 @@ export interface Snapshot {
   generos: string[];
 }
 
+const TIPOS_POR_FUENTE: Record<FuenteSnapshot, readonly TipoFicha[]> = {
+  tmdb: ['Película', 'Serie'],
+  rawg: ['Juego'],
+  openlibrary: ['Libro', 'Cómic'],
+};
+
+export function tiposCompatiblesConSnapshot(snapshot: Snapshot | null): readonly TipoFicha[] {
+  return snapshot === null ? TIPOS_FICHA : TIPOS_POR_FUENTE[snapshot.fuente];
+}
+
+export function notaExternaConSufijo(snapshot: Snapshot | null): string | null {
+  if (snapshot === null || snapshot.notaExterna === null) {
+    return null;
+  }
+  return snapshot.fuente === 'rawg' ? `${snapshot.notaExterna} MC` : `${snapshot.notaExterna}`;
+}
+
 export interface Ficha {
   id: string;
   titulo: string;
@@ -27,6 +44,8 @@ export interface Ficha {
   valoracion: number | null;
   comentarios: string | null;
   compania: string | null;
+  plataforma: string | null;
+  idioma: string | null;
   snapshot: Snapshot | null;
 }
 
@@ -38,6 +57,8 @@ export interface FichaDraft {
   valoracion: number | null;
   comentarios: string | null;
   compania: string | null;
+  plataforma: string | null;
+  idioma: string | null;
   snapshot: Snapshot | null;
 }
 
@@ -47,6 +68,10 @@ export class FichaApi {
 
   list(): Observable<Ficha[]> {
     return this.http.get<Ficha[]>('/api/fichas');
+  }
+
+  get(id: string): Observable<Ficha> {
+    return this.http.get<Ficha>(`/api/fichas/${id}`);
   }
 
   create(ficha: FichaDraft): Observable<Ficha> {

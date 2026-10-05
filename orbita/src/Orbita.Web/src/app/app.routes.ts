@@ -1,10 +1,23 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './auth/auth.guard';
-import { Dashboard } from './dashboard';
+import { EstanteriaPage } from './estanteria/estanteria-page';
+import { FichaDetallePage } from './fichas/ficha-detalle-page';
+import { LibreriaLayout } from './libreria/libreria-layout';
 import { LoginPage } from './login/login-page';
 
 export const routes: Routes = [
   { path: 'login', component: LoginPage },
-  { path: '', component: Dashboard, canActivate: [authGuard] },
-  { path: '**', redirectTo: '' },
+  {
+    path: '',
+    component: LibreriaLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'pantalla' },
+      { path: 'pantalla', component: EstanteriaPage, data: { estanteria: 'pantalla' } },
+      { path: 'lecturas', component: EstanteriaPage, data: { estanteria: 'lecturas' } },
+      { path: 'juegos', component: EstanteriaPage, data: { estanteria: 'juegos' } },
+      { path: 'fichas/:id', component: FichaDetallePage },
+    ],
+  },
+  { path: '**', redirectTo: 'pantalla' },
 ];

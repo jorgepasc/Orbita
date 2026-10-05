@@ -52,7 +52,7 @@ entorno `Authentication__Username`, `Authentication__Password` y `Authentication
 (y opcionalmente Issuer, Audience y TokenLifetimeMinutes). Las claves de enriquecimiento viajan
 como `Tmdb__BearerToken` y `Rawg__ApiKey`.
 
-La aplicación Angular consulta `GET /api/health` a través de su proxy local. El backend recibe la conexión PostgreSQL en `ConnectionStrings__orbita`, gestionada por Aspire.
+La librería se navega por Estanterías (`/pantalla`, `/lecturas`, `/juegos`) y el detalle de cada Ficha vive en `/fichas/:id`. El backend recibe la conexión PostgreSQL en `ConnectionStrings__orbita`, gestionada por Aspire; el endpoint `GET /api/health` sigue disponible para Aspire y Azure aunque la UI ya no lo muestre.
 
 ## Verificación
 

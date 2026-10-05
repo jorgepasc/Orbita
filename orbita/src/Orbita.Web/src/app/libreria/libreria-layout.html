@@ -1,0 +1,21 @@
+<div class="libreria">
+  <header class="barra">
+    <span class="marca">ORBITA</span>
+    <nav class="nav" aria-label="Estanterías">
+      @for (estanteria of estanterias; track estanteria.id) {
+        <a
+          class="nav-enlace"
+          [routerLink]="['/', estanteria.id]"
+          routerLinkActive="activa"
+          [routerLinkActiveOptions]="{ exact: false }"
+        >
+          {{ estanteria.nombre }}
+        </a>
+      }
+    </nav>
+  </header>
+
+  <main class="contenido">
+    <router-outlet />
+  </main>
+</div>

@@ -1,0 +1,119 @@
+<button class="volver" type="button" (click)="volver()">← Volver a {{ estanteriaNombre() }}</button>
+
+@if (cargando()) {
+  <p class="empty-state" aria-live="polite">Cargando la Ficha…</p>
+} @else if (ficha(); as ficha) {
+  @if (errorMessage(); as message) {
+    <p class="feedback error" role="alert">{{ message }}</p>
+  }
+
+  <article class="detalle">
+    <header class="detalle-cabecera">
+      @if (ficha.snapshot; as snapshot) {
+        <div class="portada">
+          @if (snapshot.portada; as portada) {
+            <img [src]="portada" alt="" />
+          } @else {
+            <span class="portada-placeholder" aria-hidden="true">Sin portada</span>
+          }
+        </div>
+        <div class="datos">
+          <h1>{{ ficha.titulo }}</h1>
+          @if (snapshot.autoria; as autoria) {
+            <p class="autoria">
+              <strong>{{ etiquetaAutoria(ficha.tipo) }}:</strong> {{ autoria }}
+            </p>
+          }
+          @if (snapshot.anio; as anio) {
+            <p class="anio">{{ anio }}</p>
+          }
+          @if (mostrarNotaExterna(ficha.tipo) && notaExterna(ficha); as nota) {
+            <p class="nota-externa">Nota Externa {{ nota }}</p>
+          }
+          @if (snapshot.generos.length > 0) {
+            <div class="generos" aria-label="Géneros">
+              @for (genero of snapshot.generos; track genero) {
+                <span class="genero-chip">{{ genero }}</span>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="datos">
+          <h1>{{ ficha.titulo }}</h1>
+        </div>
+      }
+    </header>
+
+    <section class="detalle-cuerpo" aria-label="Datos personales">
+      <dl>
+        @if (ficha.fecha; as fecha) {
+          <div>
+            <dt>Fecha</dt>
+            <dd>
+              <time [attr.datetime]="fecha">{{ fecha }}</time>
+            </dd>
+          </div>
+        }
+        <div>
+          <dt>Estado</dt>
+          <dd>{{ ficha.terminado ? 'Completada' : 'No continuada' }}</dd>
+        </div>
+        @if (ficha.valoracion !== null) {
+          <div>
+            <dt>Valoración</dt>
+            <dd class="valoracion">
+              <span aria-hidden="true">✳</span> {{ ficha.valoracion
+              }}<span class="valoracion-max">/10</span>
+            </dd>
+          </div>
+        }
+        @if (ficha.compania; as compania) {
+          <div>
+            <dt>Compañía</dt>
+            <dd>{{ compania }}</dd>
+          </div>
+        }
+        @if (ficha.tipo === 'Juego' && ficha.plataforma; as plataforma) {
+          <div>
+            <dt>Plataforma</dt>
+            <dd>{{ plataforma }}</dd>
+          </div>
+        }
+        @if ((ficha.tipo === 'Libro' || ficha.tipo === 'Cómic') && ficha.idioma; as idioma) {
+          <div>
+            <dt>Idioma</dt>
+            <dd>{{ idioma }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (ficha.comentarios; as comentarios) {
+        <p class="comments">{{ comentarios }}</p>
+      }
+    </section>
+
+    <div class="detalle-acciones">
+      <button class="secondary-button" type="button" (click)="abrirEdicion()">Editar</button>
+      <button class="text-button delete-button" type="button" (click)="borrar()">Borrar</button>
+    </div>
+  </article>
+
+  @if (editando()) {
+    <app-ficha-form-panel
+      [tiposPermitidos]="tiposEditables()"
+      [ficha]="ficha"
+      (guardada)="alGuardar($event)"
+      (cancelada)="cerrarEdicion()"
+    />
+  }
+} @else {
+  <div class="empty-state">
+    <p class="empty-mark" aria-hidden="true">✳</p>
+    <h2>No se encontró la Ficha.</h2>
+    @if (errorMessage(); as message) {
+      <p>{{ message }}</p>
+    }
+    <button class="secondary-button" type="button" (click)="volver()">Volver</button>
+  </div>
+}

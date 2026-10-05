@@ -1,0 +1,248 @@
+:host {
+  display: block;
+}
+
+.volver {
+  padding: 0.4rem 0;
+  border: 0;
+  border-bottom: 1px solid #9b9b8e;
+  background: transparent;
+  color: #4f554e;
+  font:
+    700 0.75rem/1.3 'IBM Plex Mono',
+    monospace;
+  cursor: pointer;
+}
+
+.detalle {
+  margin-top: 1.5rem;
+}
+
+.detalle-cabecera {
+  display: flex;
+  gap: clamp(1.25rem, 4vw, 2.5rem);
+  align-items: start;
+}
+
+.portada {
+  width: clamp(9rem, 22vw, 13rem);
+  flex: 0 0 auto;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border: 1px solid #20221f;
+  background: #fffdf8;
+  box-shadow: 0.35rem 0.35rem #d7cbbb;
+}
+
+.portada img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portada-placeholder {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  padding: 0.5rem;
+  color: #6b7068;
+  font:
+    400 0.68rem/1.3 'IBM Plex Mono',
+    monospace;
+  text-align: center;
+}
+
+.datos {
+  min-width: 0;
+}
+
+h1 {
+  margin: 0.6rem 0 0.8rem;
+  overflow-wrap: anywhere;
+  color: #20221f;
+  font-family: Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.autoria,
+.anio {
+  margin: 0 0 0.4rem;
+  color: #4f554e;
+  font:
+    400 0.9rem/1.5 'IBM Plex Mono',
+    monospace;
+}
+
+.autoria strong {
+  color: #20221f;
+}
+
+.nota-externa {
+  display: inline-block;
+  margin: 0.2rem 0 0.6rem;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid #a14d32;
+  color: #a14d32;
+  font:
+    700 0.68rem/1.3 'IBM Plex Mono',
+    monospace;
+}
+
+.generos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.genero-chip {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid #d7cbbb;
+  background: #f7f5ee;
+  color: #4f554e;
+  font:
+    400 0.64rem/1.3 'IBM Plex Mono',
+    monospace;
+}
+
+.detalle-cuerpo {
+  max-width: 40rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #d7cbbb;
+}
+
+.detalle-cuerpo dl {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.detalle-cuerpo dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.detalle-cuerpo dt,
+.detalle-cuerpo dd {
+  margin: 0;
+  color: #6b7068;
+  font:
+    400 0.8rem/1.5 'IBM Plex Mono',
+    monospace;
+}
+
+.detalle-cuerpo dd {
+  color: #20221f;
+  text-align: right;
+}
+
+.detalle-cuerpo .valoracion {
+  color: #a14d32;
+  font-weight: 700;
+}
+
+.valoracion-max {
+  color: #77796f;
+  font-weight: 400;
+}
+
+.comments {
+  margin: 1.25rem 0 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid #e2ded4;
+  color: #4f554e;
+  font:
+    400 0.85rem/1.6 'IBM Plex Mono',
+    monospace;
+  white-space: pre-wrap;
+}
+
+.detalle-acciones {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.secondary-button {
+  display: inline-flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.2rem;
+  border: 1px solid #20221f;
+  background: #fffdf8;
+  color: #20221f;
+  font:
+    700 0.8rem/1.2 'IBM Plex Mono',
+    monospace;
+  cursor: pointer;
+}
+
+.text-button {
+  padding: 0.4rem 0;
+  border: 0;
+  border-bottom: 1px solid #9b9b8e;
+  background: transparent;
+  color: #20221f;
+  font:
+    700 0.75rem/1.3 'IBM Plex Mono',
+    monospace;
+  cursor: pointer;
+}
+
+.delete-button {
+  color: #a52f27;
+}
+
+.feedback {
+  margin: 1.25rem 0;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid #a52f27;
+  background: #fff4f0;
+  color: #8c2b25;
+  font:
+    400 0.85rem/1.5 'IBM Plex Mono',
+    monospace;
+}
+
+.empty-state {
+  margin-top: 1.5rem;
+  padding: clamp(2rem, 6vw, 4rem) 1rem;
+  border: 1px dashed #aaa99e;
+  color: #4f554e;
+  text-align: center;
+}
+
+.empty-mark {
+  margin: 0;
+  color: #a14d32;
+  font-size: 2rem;
+}
+
+.empty-state h2 {
+  margin: 0.6rem 0;
+  color: #20221f;
+  font-family: Georgia, serif;
+  font-size: 1.7rem;
+}
+
+button:focus-visible {
+  outline: 3px solid #a14d32;
+  outline-offset: 2px;
+}
+
+@media (max-width: 38rem) {
+  .detalle-cabecera {
+    flex-direction: column;
+  }
+
+  .portada {
+    width: min(12rem, 60%);
+  }
+}
