@@ -30,7 +30,8 @@ foreach (var (configurationKey, environmentKey) in new[]
 builder
     .AddJavaScriptApp("web", "../../Orbita.Web", "start")
     .WithNpm()
-    .WithHttpEndpoint(targetPort: 4200, port: 4200, name: "http", isProxied: false)
+    .WithHttpsEndpoint(targetPort: 4200, port: 4200, name: "https", isProxied: false)
+    .WithReference(api)
     .WaitFor(api);
 
 builder.Build().Run();

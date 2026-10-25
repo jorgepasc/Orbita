@@ -45,7 +45,7 @@ Desde el directorio del proyecto (`orbita`), ejecuta:
 dotnet run --project src/Orbita.AppHost/Orbita.AppHost.AppHost
 ```
 
-Aspire levanta el backend, la aplicación Angular y PostgreSQL. Abre el dashboard de Aspire para acceder a los recursos. La UI también está disponible en `http://localhost:4200`.
+Aspire levanta el backend, la aplicación Angular y PostgreSQL. Abre el dashboard de Aspire para acceder a los recursos. La UI también está disponible en `https://localhost:4200`.
 
 En Azure configura las mismas claves como valores de configuración de la API con los nombres de
 entorno `Authentication__Username`, `Authentication__Password` y `Authentication__SigningKey`
@@ -69,3 +69,13 @@ npm run build
 ```
 
 El build de producción de Angular incluye el manifest y el service worker de la PWA.
+
+### HTTPS en local
+
+La API (`https://localhost:7001`) y la web (`https://localhost:4200`) usan el certificado de desarrollo de .NET.
+Confíalo y expórtalo para Angular una sola vez:
+
+```powershell
+dotnet dev-certs https --trust
+dotnet dev-certs https --export-path src/Orbita.Web/.certs/localhost.pem --format Pem --no-password
+```
