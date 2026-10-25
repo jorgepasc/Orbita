@@ -24,5 +24,7 @@ public sealed class Ficha
 
     public string? Idioma { get; set; }
 
+    public string? Autor { get; set; }
+
     public Snapshot? Snapshot { get; set; }
 }

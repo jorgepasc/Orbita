@@ -46,6 +46,7 @@ export interface Ficha {
   compania: string | null;
   plataforma: string | null;
   idioma: string | null;
+  autor: string | null;
   snapshot: Snapshot | null;
 }
 
@@ -59,6 +60,7 @@ export interface FichaDraft {
   compania: string | null;
   plataforma: string | null;
   idioma: string | null;
+  autor: string | null;
   snapshot: Snapshot | null;
 }
 

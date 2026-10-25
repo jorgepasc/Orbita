@@ -59,6 +59,7 @@ describe('FichaFormPanel', () => {
     ).click();
     fixture.detectChanges();
 
+    http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie').flush([]);
     http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula').flush([
       {
         idExterno: '438631',
@@ -100,6 +101,7 @@ describe('FichaFormPanel', () => {
       compania: null,
       plataforma: null,
       idioma: null,
+      autor: null,
       snapshot,
     });
   });
@@ -136,6 +138,40 @@ describe('FichaFormPanel', () => {
     const fixture = crear(['Libro', 'Cómic']);
     expect(fixture.nativeElement.querySelector('#idioma')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#plataforma')).toBeNull();
+  });
+
+  it('muestra Autor y oculta Compañía con Libro', () => {
+    const fixture = crear(['Libro']);
+    expect(fixture.nativeElement.querySelector('#autor')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#compania')).toBeNull();
+
+    escribir(fixture, '#titulo', 'Dune');
+    escribir(fixture, '#fecha', '2025-03-04');
+    escribir(fixture, '#autor', 'Frank Herbert');
+    (fixture.nativeElement.querySelector('.ficha-form') as HTMLFormElement).dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true }),
+    );
+
+    const peticion = http.expectOne('/api/fichas');
+    expect(peticion.request.body.autor).toBe('Frank Herbert');
+    expect(peticion.request.body.compania).toBeNull();
+    peticion.flush({});
+  });
+
+  it('muestra Compañía con su placeholder y no Autor fuera de Libro', () => {
+    const fixture = crear(['Película']);
+    const compania = fixture.nativeElement.querySelector('#compania') as HTMLInputElement;
+
+    expect(compania.placeholder).toBe('Family, solo...');
+    expect(fixture.nativeElement.querySelector('#autor')).toBeNull();
+  });
+
+  it('marca Terminado por defecto', async () => {
+    const fixture = crear(['Película']);
+    await fixture.whenStable();
+    const terminado = fixture.nativeElement.querySelector('#terminado') as HTMLInputElement;
+
+    expect(terminado.checked).toBe(true);
   });
 
   it('limita el selector de Tipo a los permitidos', () => {

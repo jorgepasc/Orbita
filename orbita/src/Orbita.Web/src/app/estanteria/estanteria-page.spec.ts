@@ -25,6 +25,7 @@ function ficha(parcial: Partial<Ficha> & { id: string; titulo: string }): Ficha 
     compania: null,
     plataforma: null,
     idioma: null,
+    autor: null,
     snapshot: null,
     ...parcial,
   };

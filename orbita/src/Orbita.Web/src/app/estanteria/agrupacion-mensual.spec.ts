@@ -10,6 +10,7 @@ function ficha(parcial: Partial<Ficha> & { id: string; titulo: string; fecha: st
     compania: null,
     plataforma: null,
     idioma: null,
+    autor: null,
     snapshot: null,
     ...parcial,
   };

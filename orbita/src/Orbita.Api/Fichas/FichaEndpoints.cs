@@ -141,6 +141,18 @@ public static class FichaEndpoints
                     ["La Plataforma solo está disponible para el Tipo Juego."];
             }
 
+            if (!string.IsNullOrWhiteSpace(input.Compania) && tipo == TipoFicha.Libro)
+            {
+                errors[nameof(input.Compania)] =
+                    ["La Compañía no está disponible para el Tipo Libro."];
+            }
+
+            if (!string.IsNullOrWhiteSpace(input.Autor) && tipo != TipoFicha.Libro)
+            {
+                errors[nameof(input.Autor)] =
+                    ["El Autor solo está disponible para el Tipo Libro."];
+            }
+
             if (!string.IsNullOrWhiteSpace(input.Idioma) && tipo is not (TipoFicha.Libro or TipoFicha.Comic))
             {
                 errors[nameof(input.Idioma)] =
@@ -173,6 +185,11 @@ public static class FichaEndpoints
             errors[nameof(input.Plataforma)] = ["La Plataforma no puede superar los 200 caracteres."];
         }
 
+        if (input.Autor?.Length > 200)
+        {
+            errors[nameof(input.Autor)] = ["El Autor no puede superar los 200 caracteres."];
+        }
+
         if (input.Idioma?.Length > 200)
         {
             errors[nameof(input.Idioma)] = ["El Idioma no puede superar los 200 caracteres."];
@@ -192,6 +209,7 @@ public static class FichaEndpoints
         ficha.Compania = input.Compania;
         ficha.Plataforma = input.Plataforma;
         ficha.Idioma = input.Idioma;
+        ficha.Autor = input.Autor;
     }
 }
 
@@ -205,6 +223,7 @@ public sealed record FichaInput(
     string? Compania,
     string? Plataforma,
     string? Idioma,
+    string? Autor,
     Snapshot? Snapshot);
 
 public sealed record FichaResponse(
@@ -218,6 +237,7 @@ public sealed record FichaResponse(
     string? Compania,
     string? Plataforma,
     string? Idioma,
+    string? Autor,
     Snapshot? Snapshot)
 {
     public static FichaResponse From(Ficha ficha) => new(
@@ -231,5 +251,6 @@ public sealed record FichaResponse(
         ficha.Compania,
         ficha.Plataforma,
         ficha.Idioma,
+        ficha.Autor,
         ficha.Snapshot);
 }

@@ -8,12 +8,13 @@ function crearDraftVacio(): FichaDraft {
     titulo: '',
     tipo: 'Película',
     fecha: null,
-    terminado: false,
+    terminado: true,
     valoracion: null,
     comentarios: null,
     compania: null,
     plataforma: null,
     idioma: null,
+    autor: null,
     snapshot: null,
   };
 }
@@ -81,6 +82,10 @@ export class FichaFormPanel implements OnInit {
     this.draft.idioma = idioma;
   }
 
+  protected actualizarAutor(autor: string): void {
+    this.draft.autor = autor;
+  }
+
   protected actualizarComentarios(comentarios: string): void {
     this.draft.comentarios = comentarios;
   }
@@ -89,7 +94,12 @@ export class FichaFormPanel implements OnInit {
     this.draft.terminado = terminado;
   }
 
-  protected elegirEnriquecimiento(elegido: { snapshot: Snapshot; titulo: string }): void {
+  protected elegirEnriquecimiento(elegido: {
+    snapshot: Snapshot;
+    titulo: string;
+    tipo: TipoFicha;
+  }): void {
+    this.draft.tipo = elegido.tipo;
     this.draft.snapshot = elegido.snapshot;
     this.draft.titulo = elegido.titulo;
     this.mostrarBusqueda.set(false);
@@ -113,6 +123,11 @@ export class FichaFormPanel implements OnInit {
     }
     if (tipo !== 'Libro' && tipo !== 'Cómic') {
       this.draft.idioma = null;
+    }
+    if (tipo !== 'Libro') {
+      this.draft.autor = null;
+    } else {
+      this.draft.compania = null;
     }
     if (!this.esEdicion() && this.draft.snapshot !== null) {
       this.draft.snapshot = null;
@@ -151,12 +166,14 @@ export class FichaFormPanel implements OnInit {
   }
 
   private normalizarDraft(draft: FichaDraft): FichaDraft {
+    const esLibro = draft.tipo === 'Libro';
     return {
       ...draft,
       titulo: draft.titulo.trim(),
       fecha: draft.fecha || null,
       comentarios: draft.comentarios?.trim() || null,
-      compania: draft.compania?.trim() || null,
+      compania: esLibro ? null : draft.compania?.trim() || null,
+      autor: esLibro ? draft.autor?.trim() || null : null,
       plataforma: draft.plataforma?.trim() || null,
       idioma: draft.idioma?.trim() || null,
     };

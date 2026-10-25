@@ -290,8 +290,8 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         await AuthenticateAsync();
         using var createResponse = await client.PostAsJsonAsync("/api/fichas", new
         {
-            titulo = "El nombre del viento",
-            tipo = "Libro",
+            titulo = "Arrival",
+            tipo = "Película",
             fecha = "2025-03-14",
             terminado = true,
             valoracion = 9.25m,
@@ -313,8 +313,8 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
 
         using var updateResponse = await client.PutAsJsonAsync($"/api/fichas/{created.Id}", new
         {
-            titulo = "El nombre del viento",
-            tipo = "Libro",
+            titulo = "Arrival",
+            tipo = "Película",
             fecha = "2025-03-15",
             terminado = true,
             valoracion = 9.5m,
@@ -403,6 +403,67 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
         using var problem = await response.Content.ReadFromJsonAsync<JsonDocument>();
         Assert.Equal(
             "Plataforma",
+            problem!.RootElement.GetProperty("errors").EnumerateObject().First().Name);
+    }
+
+    [Fact]
+    public async Task Create_round_trips_autor_for_libro()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Dune",
+            tipo = "Libro",
+            fecha = "2025-03-04",
+            terminado = true,
+            autor = "Frank Herbert"
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var ficha = await response.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.Equal("Frank Herbert", ficha?.Autor);
+    }
+
+    [Fact]
+    public async Task Create_rejects_autor_outside_libro()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Arrival",
+            tipo = "Película",
+            fecha = "2025-03-05",
+            terminado = true,
+            autor = "Alguien"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var problem = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.Equal(
+            "Autor",
+            problem!.RootElement.GetProperty("errors").EnumerateObject().First().Name);
+    }
+
+    [Fact]
+    public async Task Create_rejects_compania_for_libro()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Dune",
+            tipo = "Libro",
+            fecha = "2025-03-06",
+            terminado = true,
+            compania = "Solo"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var problem = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.Equal(
+            "Compania",
             problem!.RootElement.GetProperty("errors").EnumerateObject().First().Name);
     }
 
@@ -502,6 +563,7 @@ internal sealed record FichaResponse(
     string? Compania,
     string? Plataforma,
     string? Idioma,
+    string? Autor,
     SnapshotResponse? Snapshot);
 
 internal sealed record SnapshotResponse(

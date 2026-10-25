@@ -1,6 +1,10 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import type { Snapshot, TipoFicha } from '../fichas/ficha-api';
-import { EnriquecimientoApi, type Resultado } from './enriquecimiento-api';
+import { EnriquecimientoApi, type ResultadoDeTipo } from './enriquecimiento-api';
+
+// Pantalla agrupa Película y Serie, ambas de TMDB: una sola búsqueda cubre las dos.
+const TIPOS_PANTALLA: readonly TipoFicha[] = ['Película', 'Serie'];
 
 @Component({
   selector: 'app-enriquecimiento-panel',
@@ -12,12 +16,15 @@ export class EnriquecimientoPanel {
   private readonly api = inject(EnriquecimientoApi);
 
   readonly tipo = input.required<TipoFicha>();
-  readonly elegido = output<{ snapshot: Snapshot; titulo: string }>();
+  readonly elegido = output<{ snapshot: Snapshot; titulo: string; tipo: TipoFicha }>();
   readonly manual = output<void>();
 
   protected consulta = '';
   protected readonly buscando = signal(false);
-  protected readonly resultados = signal<Resultado[]>([]);
+  protected readonly tiposBusqueda = computed<readonly TipoFicha[]>(() =>
+    TIPOS_PANTALLA.includes(this.tipo()) ? TIPOS_PANTALLA : [this.tipo()],
+  );
+  protected readonly resultados = signal<ResultadoDeTipo[]>([]);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly busquedaRealizada = signal(false);
   private versionTipo = 0;
@@ -53,13 +60,35 @@ export class EnriquecimientoPanel {
     const numeroBusqueda = ++this.numeroBusqueda;
     this.buscando.set(true);
     this.errorMessage.set(null);
-    this.api.resultados(texto, tipo).subscribe({
-      next: (resultados) => {
+    const tipos = this.tiposBusqueda();
+    let fallos = 0;
+    forkJoin(
+      tipos.map((tipoBusqueda) =>
+        this.api.resultados(texto, tipoBusqueda).pipe(
+          map((resultados) =>
+            resultados.map((resultado) => ({ ...resultado, tipo: tipoBusqueda })),
+          ),
+          catchError(() => {
+            fallos += 1;
+            return of<ResultadoDeTipo[]>([]);
+          }),
+        ),
+      ),
+    ).subscribe({
+      next: (porTipo) => {
+        if (fallos === tipos.length) {
+          this.buscando.set(false);
+          this.errorMessage.set(
+            'No se pudo consultar la API externa. Prueba de nuevo o añade la Ficha manualmente.',
+          );
+          return;
+        }
+
         if (!this.busquedaSigueVigente(tipo, versionTipo, numeroBusqueda)) {
           return;
         }
 
-        this.resultados.set(resultados);
+        this.resultados.set(porTipo.flat());
         this.busquedaRealizada.set(true);
         this.buscando.set(false);
       },
@@ -76,19 +105,19 @@ export class EnriquecimientoPanel {
     });
   }
 
-  protected elegir(resultado: Resultado): void {
+  protected elegir(resultado: ResultadoDeTipo): void {
     const tipo = this.tipo();
     const versionTipo = this.versionTipo;
     const numeroSnapshot = ++this.numeroSnapshot;
     this.buscando.set(true);
-    this.api.snapshot(tipo, resultado.idExterno).subscribe({
+    this.api.snapshot(resultado.tipo, resultado.idExterno).subscribe({
       next: (snapshot) => {
         if (!this.tipoSigueVigente(tipo, versionTipo) || numeroSnapshot !== this.numeroSnapshot) {
           return;
         }
 
         this.buscando.set(false);
-        this.elegido.emit({ snapshot, titulo: resultado.titulo });
+        this.elegido.emit({ snapshot, titulo: resultado.titulo, tipo: resultado.tipo });
       },
       error: () => {
         if (!this.tipoSigueVigente(tipo, versionTipo) || numeroSnapshot !== this.numeroSnapshot) {

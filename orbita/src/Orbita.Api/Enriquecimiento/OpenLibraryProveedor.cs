@@ -58,10 +58,22 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
             obra.Covers?.FirstOrDefault(portada => portada > 0) is { } portada
                 ? $"https://covers.openlibrary.org/b/id/{portada}-L.jpg"
                 : null,
-            Anio(obra.FirstPublishDate),
+            Anio(obra.FirstPublishDate) ?? await AnioDePrimeraPublicacionAsync(idExterno, cancellationToken),
             autoria,
             null,
             [.. (obra.Subjects ?? []).Take(5)]);
+    }
+
+    // El detalle de la obra casi nunca trae first_publish_date; la búsqueda sí expone first_publish_year.
+    private async Task<int?> AnioDePrimeraPublicacionAsync(string clave, CancellationToken cancellationToken)
+    {
+        UrlDeClave(clave, "/works/");
+
+        var busqueda = await GetJsonAsync<BusquedaOpenLibrary>(
+            $"{BaseUrl}/search.json?q={Uri.EscapeDataString($"key:{clave}")}&fields=key,title,first_publish_year&limit=1",
+            cancellationToken);
+
+        return busqueda.Docs.FirstOrDefault()?.FirstPublishYear;
     }
 
     private static string UrlDeClave(string clave, string prefijo)
@@ -86,13 +98,13 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
         return coincidencia.Success && int.TryParse(coincidencia.Value, out var anio) ? anio : null;
     }
 
-    private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken) =>
-        ClienteJsonExterno.EnviarAsync<T>(
-            http,
-            new HttpRequestMessage(HttpMethod.Get, url),
-            "Open Library",
-            Json,
-            cancellationToken);
+    private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
+    {
+        var solicitud = new HttpRequestMessage(HttpMethod.Get, url);
+        solicitud.Headers.UserAgent.ParseAdd("Orbita/1.0 (uso personal)");
+
+        return ClienteJsonExterno.EnviarAsync<T>(http, solicitud, "Open Library", Json, cancellationToken);
+    }
 
     private sealed record BusquedaOpenLibrary(List<DocumentoOpenLibrary> Docs);
 

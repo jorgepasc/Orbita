@@ -11,6 +11,10 @@ export interface Resultado {
   notaExterna: number | null;
 }
 
+export interface ResultadoDeTipo extends Resultado {
+  tipo: TipoFicha;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EnriquecimientoApi {
   private readonly http = inject(HttpClient);

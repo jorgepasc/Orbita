@@ -28,6 +28,10 @@ namespace Orbita.Api.Fichas.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Autor")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("Comentarios")
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)");

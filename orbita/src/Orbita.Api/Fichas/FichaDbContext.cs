@@ -27,6 +27,7 @@ public sealed class FichaDbContext(DbContextOptions<FichaDbContext> options) : D
         ficha.Property(value => value.Compania).HasMaxLength(200);
         ficha.Property(value => value.Plataforma).HasMaxLength(200);
         ficha.Property(value => value.Idioma).HasMaxLength(200);
+        ficha.Property(value => value.Autor).HasMaxLength(200);
         ficha.Property(value => value.Snapshot)
             .HasConversion(
                 snapshot => JsonSerializer.Serialize(snapshot, (JsonSerializerOptions?)null),

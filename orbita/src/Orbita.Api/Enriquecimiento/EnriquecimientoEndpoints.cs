@@ -19,6 +19,7 @@ public static class EnriquecimientoEndpoints
         string? q,
         string? tipo,
         ProveedoresEnriquecimiento proveedores,
+        ILogger<ProveedoresEnriquecimiento> logger,
         CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string[]>();
@@ -38,7 +39,7 @@ public static class EnriquecimientoEndpoints
             return Results.ValidationProblem(errors);
         }
 
-        return await ConApiExterna(async () =>
+        return await ConApiExterna(logger, async () =>
         {
             var resultados = await proveedores.Para(tipoFicha).BuscarAsync(tipoFicha, q!.Trim(), cancellationToken);
             return Results.Ok(resultados);
@@ -49,6 +50,7 @@ public static class EnriquecimientoEndpoints
         string? tipo,
         string? idExterno,
         ProveedoresEnriquecimiento proveedores,
+        ILogger<ProveedoresEnriquecimiento> logger,
         CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string[]>();
@@ -68,7 +70,7 @@ public static class EnriquecimientoEndpoints
             return Results.ValidationProblem(errors);
         }
 
-        return await ConApiExterna(async () =>
+        return await ConApiExterna(logger, async () =>
         {
             var snapshot = await proveedores
                 .Para(tipoFicha)
@@ -77,7 +79,7 @@ public static class EnriquecimientoEndpoints
         });
     }
 
-    private static async Task<IResult> ConApiExterna(Func<Task<IResult>> ejecutar)
+    private static async Task<IResult> ConApiExterna(ILogger logger, Func<Task<IResult>> ejecutar)
     {
         try
         {
@@ -85,6 +87,7 @@ public static class EnriquecimientoEndpoints
         }
         catch (Exception exception) when (EsFalloApiExterna(exception))
         {
+            logger.LogWarning(exception, "Fallo al consultar una API externa de enriquecimiento.");
             return ProblemaApiExterna();
         }
     }

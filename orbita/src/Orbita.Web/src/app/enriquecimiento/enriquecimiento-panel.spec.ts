@@ -32,6 +32,7 @@ describe('EnriquecimientoPanel', () => {
 
   it('queries the resultados endpoint for the tipo and shows empty state', async () => {
     await buscar('Dune');
+    vaciarSeries();
 
     const request = http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula');
     expect(request.request.method).toBe('GET');
@@ -43,6 +44,7 @@ describe('EnriquecimientoPanel', () => {
 
   it('renders the resultados with portada, titulo, anio and nota externa', async () => {
     await buscar('Dune');
+    vaciarSeries();
     http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula').flush([
       {
         idExterno: '438631',
@@ -67,6 +69,7 @@ describe('EnriquecimientoPanel', () => {
     fixture.componentInstance.elegido.subscribe(elegido);
 
     await buscar('Dune');
+    vaciarSeries();
     http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula').flush([
       {
         idExterno: '438631',
@@ -86,11 +89,14 @@ describe('EnriquecimientoPanel', () => {
     expect(request.request.method).toBe('GET');
     request.flush(snapshot);
 
-    expect(elegido).toHaveBeenCalledWith({ snapshot, titulo: 'Dune' });
+    expect(elegido).toHaveBeenCalledWith({ snapshot, titulo: 'Dune', tipo: 'Película' });
   });
 
   it('shows an error and keeps the manual escape when the API is down', async () => {
     await buscar('Dune');
+    http
+      .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie')
+      .flush(null, { status: 502, statusText: 'Bad Gateway' });
     http
       .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula')
       .flush(null, { status: 502, statusText: 'Bad Gateway' });
@@ -98,6 +104,83 @@ describe('EnriquecimientoPanel', () => {
 
     expect(fixture.nativeElement.textContent).toContain('No se pudo consultar la API externa');
     expect(fixture.nativeElement.textContent).toContain('Añadir manualmente');
+  });
+
+  it('searches Película and Serie together and tags each resultado with its tipo', async () => {
+    await buscar('Dune');
+    http
+      .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula')
+      .flush([{ idExterno: '1', titulo: 'Dune', anio: 2021, portada: null, notaExterna: null }]);
+    http
+      .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie')
+      .flush([
+        {
+          idExterno: '1',
+          titulo: 'Dune: La hermandad',
+          anio: 2024,
+          portada: null,
+          notaExterna: null,
+        },
+      ]);
+    fixture.detectChanges();
+
+    const etiquetas = Array.from(
+      fixture.nativeElement.querySelectorAll('.resultado-tipo') as NodeListOf<HTMLElement>,
+    ).map((etiqueta) => etiqueta.textContent?.trim());
+    expect(etiquetas).toEqual(['Película', 'Serie']);
+  });
+
+  it('emits the tipo of the chosen Serie and freezes its snapshot with that tipo', async () => {
+    const elegido = vi.fn();
+    fixture.componentInstance.elegido.subscribe(elegido);
+
+    await buscar('Dune');
+    http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula').flush([]);
+    http
+      .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie')
+      .flush([
+        {
+          idExterno: '99',
+          titulo: 'Dune: La hermandad',
+          anio: 2024,
+          portada: null,
+          notaExterna: null,
+        },
+      ]);
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.resultado') as HTMLButtonElement).click();
+    http
+      .expectOne('/api/enriquecimiento/snapshot?tipo=Serie&idExterno=99')
+      .flush({ ...snapshot, idExterno: '99' });
+
+    expect(elegido).toHaveBeenCalledWith({
+      snapshot: { ...snapshot, idExterno: '99' },
+      titulo: 'Dune: La hermandad',
+      tipo: 'Serie',
+    });
+  });
+
+  it('keeps the resultados of one tipo when the other source fails', async () => {
+    await buscar('Dune');
+    http
+      .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula')
+      .flush(null, { status: 502, statusText: 'Bad Gateway' });
+    http
+      .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie')
+      .flush([
+        {
+          idExterno: '99',
+          titulo: 'Dune: La hermandad',
+          anio: 2024,
+          portada: null,
+          notaExterna: null,
+        },
+      ]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.resultado').length).toBe(1);
+    expect(fixture.nativeElement.textContent).not.toContain('No se pudo consultar');
   });
 
   it('emits the manual escape when requested', () => {
@@ -112,6 +195,7 @@ describe('EnriquecimientoPanel', () => {
 
   it('discards the resultados when the tipo changes', async () => {
     await buscar('Dune');
+    vaciarSeries();
     http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula').flush([
       {
         idExterno: '438631',
@@ -132,6 +216,7 @@ describe('EnriquecimientoPanel', () => {
 
   it('ignores resultados that arrive after the tipo changes', async () => {
     await buscar('Dune');
+    vaciarSeries();
     const request = http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula');
 
     fixture.componentRef.setInput('tipo', 'Libro');
@@ -155,6 +240,7 @@ describe('EnriquecimientoPanel', () => {
     fixture.componentInstance.elegido.subscribe(elegido);
 
     await buscar('Dune');
+    vaciarSeries();
     http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula').flush([
       {
         idExterno: '438631',
@@ -176,6 +262,10 @@ describe('EnriquecimientoPanel', () => {
 
     expect(elegido).not.toHaveBeenCalled();
   });
+
+  function vaciarSeries(): void {
+    http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie').flush([]);
+  }
 
   async function buscar(texto: string): Promise<void> {
     fixture.detectChanges();

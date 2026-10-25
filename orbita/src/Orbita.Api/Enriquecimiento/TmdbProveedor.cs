@@ -62,6 +62,11 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
 
     private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(options.Value.BearerToken))
+        {
+            throw new ApiExternaException("TMDB no está configurado: falta Tmdb:BearerToken.");
+        }
+
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization =
             new AuthenticationHeaderValue("Bearer", options.Value.BearerToken);

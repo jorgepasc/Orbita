@@ -38,7 +38,7 @@
 
   @if (resultados().length > 0) {
     <ul class="resultados">
-      @for (resultado of resultados(); track resultado.idExterno) {
+      @for (resultado of resultados(); track resultado.tipo + resultado.idExterno) {
         <li>
           <button class="resultado" type="button" (click)="elegir(resultado)">
             @if (resultado.portada; as portada) {
@@ -47,6 +47,9 @@
             <span class="resultado-datos">
               <span class="resultado-titulo">{{ resultado.titulo }}</span>
               <span class="resultado-meta">
+                @if (tiposBusqueda().length > 1) {
+                  <span class="resultado-tipo">{{ resultado.tipo }}</span>
+                }
                 @if (resultado.anio; as anio) {
                   {{ anio }}
                 }

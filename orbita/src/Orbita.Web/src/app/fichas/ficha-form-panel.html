@@ -115,18 +115,35 @@
           />
         </label>
 
-        <label class="field" for="compania">
-          <span>Compañía <span class="optional-mark">opcional</span></span>
-          <input
-            id="compania"
-            name="compania"
-            type="text"
-            maxlength="200"
-            placeholder="Georgia, Family, Solo…"
-            [ngModel]="draft.compania"
-            (input)="actualizarCompania($any($event.target).value)"
-          />
-        </label>
+        @if (draft.tipo !== 'Libro') {
+          <label class="field" for="compania">
+            <span>Compañía <span class="optional-mark">opcional</span></span>
+            <input
+              id="compania"
+              name="compania"
+              type="text"
+              maxlength="200"
+              placeholder="Family, solo..."
+              [ngModel]="draft.compania"
+              (input)="actualizarCompania($any($event.target).value)"
+            />
+          </label>
+        }
+
+        @if (draft.tipo === 'Libro') {
+          <label class="field" for="autor">
+            <span>Autor <span class="optional-mark">opcional</span></span>
+            <input
+              id="autor"
+              name="autor"
+              type="text"
+              maxlength="200"
+              autocomplete="off"
+              [ngModel]="draft.autor"
+              (input)="actualizarAutor($any($event.target).value)"
+            />
+          </label>
+        }
 
         @if (draft.tipo === 'Juego') {
           <label class="field" for="plataforma">

@@ -68,7 +68,13 @@
             </dd>
           </div>
         }
-        @if (ficha.compania; as compania) {
+        @if (ficha.tipo === 'Libro' && ficha.autor; as autor) {
+          <div>
+            <dt>Autor</dt>
+            <dd>{{ autor }}</dd>
+          </div>
+        }
+        @if (ficha.tipo !== 'Libro' && ficha.compania; as compania) {
           <div>
             <dt>Compañía</dt>
             <dd>{{ compania }}</dd>
