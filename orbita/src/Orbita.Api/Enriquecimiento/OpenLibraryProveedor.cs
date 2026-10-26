@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Orbita.Application.Enriquecimiento;
 using Orbita.Domain.Fichas;
 
 namespace Orbita.Api.Enriquecimiento;

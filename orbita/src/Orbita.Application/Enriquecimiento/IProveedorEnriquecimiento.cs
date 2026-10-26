@@ -1,6 +1,6 @@
 using Orbita.Domain.Fichas;
 
-namespace Orbita.Api.Enriquecimiento;
+namespace Orbita.Application.Enriquecimiento;
 
 public sealed record Resultado(
     string IdExterno,
@@ -19,9 +19,3 @@ public interface IProveedorEnriquecimiento
 }
 
 public sealed class ApiExternaException(string mensaje) : Exception(mensaje);
-
-internal static class Anio
-{
-    public static int? DesdeFecha(string? fecha) =>
-        fecha is { Length: >= 4 } && int.TryParse(fecha.AsSpan(0, 4), out var anio) ? anio : null;
-}

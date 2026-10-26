@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 
+using Orbita.Application.Enriquecimiento;
+
 namespace Orbita.Api.Enriquecimiento;
 
 internal static class ClienteJsonExterno

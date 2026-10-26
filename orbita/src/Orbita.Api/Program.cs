@@ -1,13 +1,16 @@
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Orbita.Api.Autenticacion;
 using Orbita.Api.Enriquecimiento;
 using Orbita.Api.Fichas;
+using Orbita.Application;
+using Orbita.Application.Autenticacion;
+using Orbita.Application.Enriquecimiento;
+using Orbita.Application.Fichas;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +39,7 @@ builder.Services
             ValidateAudience = true,
             ValidAudience = settings.Audience,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = CreateSigningKey(settings.SigningKey),
+            IssuerSigningKey = ServicioAutenticacionJwt.CrearClaveDeFirma(settings.SigningKey),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero,
             NameClaimType = ClaimTypes.Name
@@ -53,12 +56,18 @@ var databaseConnectionString = builder.Configuration.GetConnectionString("orbita
 builder.Services.AddSingleton(new OrbitaDatabaseOptions(databaseConnectionString));
 builder.Services.AddDbContext<FichaDbContext>(options => options.UseNpgsql(databaseConnectionString));
 
+builder.Services.AddApplication();
+builder.Services.AddScoped<IFichaRepositorio, FichaRepositorio>();
+builder.Services.AddSingleton<IServicioAutenticacion, ServicioAutenticacionJwt>();
+
 builder.Services.AddOptions<TmdbOptions>().BindConfiguration(TmdbOptions.SectionName);
 builder.Services.AddOptions<RawgOptions>().BindConfiguration(RawgOptions.SectionName);
 builder.Services.AddHttpClient<TmdbProveedor>();
 builder.Services.AddHttpClient<RawgProveedor>();
 builder.Services.AddHttpClient<OpenLibraryProveedor>();
-builder.Services.AddTransient<ProveedoresEnriquecimiento>();
+builder.Services.AddTransient<IProveedorEnriquecimiento>(sp => sp.GetRequiredService<TmdbProveedor>());
+builder.Services.AddTransient<IProveedorEnriquecimiento>(sp => sp.GetRequiredService<RawgProveedor>());
+builder.Services.AddTransient<IProveedorEnriquecimiento>(sp => sp.GetRequiredService<OpenLibraryProveedor>());
 
 var app = builder.Build();
 
@@ -77,29 +86,13 @@ app.MapGet("/api/health", (OrbitaDatabaseOptions database) =>
     .WithName("GetHealth")
     .AllowAnonymous();
 
-app.MapPost("/api/auth/login", (LoginRequest request, AuthenticationSettings settings) =>
+app.MapPost("/api/auth/login", (LoginRequest request, IServicioAutenticacion autenticacion) =>
 {
-    if (!CredentialsMatch(request.Username, settings.Username)
-        || !CredentialsMatch(request.Password, settings.Password))
-    {
-        return Results.Unauthorized();
-    }
+    var sesion = autenticacion.IniciarSesion(request.Username, request.Password);
 
-    var now = DateTimeOffset.UtcNow;
-    var expiresAt = now.AddMinutes(settings.TokenLifetimeMinutes);
-    var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(
-        issuer: settings.Issuer,
-        audience: settings.Audience,
-        claims: [new Claim(ClaimTypes.Name, settings.Username)],
-        notBefore: now.UtcDateTime,
-        expires: expiresAt.UtcDateTime,
-        signingCredentials: new SigningCredentials(
-            CreateSigningKey(settings.SigningKey),
-            SecurityAlgorithms.HmacSha256));
-
-    return Results.Ok(new LoginResponse(
-        AccessToken: new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(token),
-        ExpiresAtUtc: expiresAt));
+    return sesion is null
+        ? Results.Unauthorized()
+        : Results.Ok(new LoginResponse(sesion.AccessToken, sesion.ExpiresAtUtc));
 })
     .AllowAnonymous();
 
@@ -120,23 +113,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.Run();
-
-static bool CredentialsMatch(string? actual, string expected)
-{
-    if (actual is null)
-    {
-        return false;
-    }
-
-    var actualBytes = Encoding.UTF8.GetBytes(actual);
-    var expectedBytes = Encoding.UTF8.GetBytes(expected);
-
-    return actualBytes.Length == expectedBytes.Length
-        && CryptographicOperations.FixedTimeEquals(actualBytes, expectedBytes);
-}
-
-static SymmetricSecurityKey CreateSigningKey(string signingKey) =>
-    new(Encoding.UTF8.GetBytes(signingKey));
 
 public partial class Program;
 

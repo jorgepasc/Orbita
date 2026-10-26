@@ -1,4 +1,5 @@
-using Microsoft.EntityFrameworkCore;
+using Orbita.Application.Comun;
+using Orbita.Application.Fichas;
 using Orbita.Domain.Fichas;
 
 namespace Orbita.Api.Fichas;
@@ -9,13 +10,9 @@ public static class FichaEndpoints
     {
         var group = endpoints.MapGroup("/api/fichas").RequireAuthorization();
 
-        group.MapGet("", async (FichaDbContext database, CancellationToken cancellationToken) =>
+        group.MapGet("", async (ListarFichas listarFichas, CancellationToken cancellationToken) =>
         {
-            var fichas = await database.Fichas
-                .AsNoTracking()
-                .OrderBy(ficha => ficha.Titulo)
-                .ThenBy(ficha => ficha.Id)
-                .ToListAsync(cancellationToken);
+            var fichas = await listarFichas.EjecutarAsync(cancellationToken);
 
             return Results.Ok(fichas.Select(FichaResponse.From).ToArray());
         });
@@ -30,69 +27,46 @@ public static class FichaEndpoints
 
     private static async Task<IResult> GetAsync(
         Guid id,
-        FichaDbContext database,
+        ObtenerFicha obtenerFicha,
         CancellationToken cancellationToken)
     {
-        var ficha = await database.Fichas
-            .AsNoTracking()
-            .FirstOrDefaultAsync(value => value.Id == id, cancellationToken);
+        var ficha = await obtenerFicha.EjecutarAsync(id, cancellationToken);
         return ficha is null ? Results.NotFound() : Results.Ok(FichaResponse.From(ficha));
     }
 
     private static async Task<IResult> CreateAsync(
         FichaInput input,
-        FichaDbContext database,
+        CrearFicha crearFicha,
         CancellationToken cancellationToken)
     {
-        if (!Ficha.TryCrear(ADatos(input), input.Snapshot?.ADominio(), out var ficha, out var errores))
-        {
-            return Invalido(errores);
-        }
+        var resultado = await crearFicha.EjecutarAsync(ADatos(input), input.Snapshot?.ADominio(), cancellationToken);
 
-        database.Fichas.Add(ficha);
-        await database.SaveChangesAsync(cancellationToken);
-
-        return Results.Created($"/api/fichas/{ficha.Id}", FichaResponse.From(ficha));
+        return resultado.Estado == EstadoOperacion.Exito
+            ? Results.Created($"/api/fichas/{resultado.Valor!.Id}", FichaResponse.From(resultado.Valor))
+            : Invalido(resultado.Errores!);
     }
 
     private static async Task<IResult> UpdateAsync(
         Guid id,
         FichaInput input,
-        FichaDbContext database,
+        ActualizarFicha actualizarFicha,
         CancellationToken cancellationToken)
     {
-        var ficha = await database.Fichas.FirstOrDefaultAsync(value => value.Id == id, cancellationToken);
-        if (ficha is null)
+        var resultado = await actualizarFicha.EjecutarAsync(id, ADatos(input), cancellationToken);
+
+        return resultado.Estado switch
         {
-            return Results.NotFound();
-        }
-
-        var errores = ficha.Actualizar(ADatos(input));
-        if (errores.Hay)
-        {
-            return Invalido(errores);
-        }
-
-        await database.SaveChangesAsync(cancellationToken);
-
-        return Results.Ok(FichaResponse.From(ficha));
+            EstadoOperacion.NoEncontrado => Results.NotFound(),
+            EstadoOperacion.Invalido => Invalido(resultado.Errores!),
+            _ => Results.Ok(FichaResponse.From(resultado.Valor!))
+        };
     }
 
     private static async Task<IResult> DeleteAsync(
         Guid id,
-        FichaDbContext database,
-        CancellationToken cancellationToken)
-    {
-        var ficha = await database.Fichas.FirstOrDefaultAsync(value => value.Id == id, cancellationToken);
-        if (ficha is null)
-        {
-            return Results.NotFound();
-        }
-
-        database.Fichas.Remove(ficha);
-        await database.SaveChangesAsync(cancellationToken);
-        return Results.NoContent();
-    }
+        EliminarFicha eliminarFicha,
+        CancellationToken cancellationToken) =>
+        await eliminarFicha.EjecutarAsync(id, cancellationToken) ? Results.NoContent() : Results.NotFound();
 
     private static DatosFicha ADatos(FichaInput input) => new(
         input.Titulo,

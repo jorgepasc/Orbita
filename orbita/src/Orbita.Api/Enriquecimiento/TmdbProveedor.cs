@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
+using Orbita.Application.Enriquecimiento;
 using Orbita.Domain.Fichas;
 
 namespace Orbita.Api.Enriquecimiento;
