@@ -22,7 +22,7 @@ namespace Orbita.Api.Fichas.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Orbita.Api.Fichas.Ficha", b =>
+            modelBuilder.Entity("Orbita.Domain.Fichas.Ficha", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

@@ -1,6 +1,4 @@
-using Orbita.Api.Enriquecimiento;
-
-namespace Orbita.Api.Fichas;
+namespace Orbita.Domain.Fichas;
 
 public sealed class Ficha
 {

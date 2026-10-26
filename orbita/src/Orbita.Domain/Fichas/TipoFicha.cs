@@ -1,4 +1,4 @@
-namespace Orbita.Api.Fichas;
+namespace Orbita.Domain.Fichas;
 
 public enum TipoFicha
 {

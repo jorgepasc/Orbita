@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using Orbita.Api.Fichas;
+using Orbita.Domain.Fichas;
 
 namespace Orbita.Api.Enriquecimiento;
 

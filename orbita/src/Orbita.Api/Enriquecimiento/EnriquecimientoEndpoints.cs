@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Orbita.Api.Fichas;
+using Orbita.Domain.Fichas;
 
 namespace Orbita.Api.Enriquecimiento;
 

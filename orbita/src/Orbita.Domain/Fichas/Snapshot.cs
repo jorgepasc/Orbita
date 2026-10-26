@@ -1,8 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Orbita.Api.Fichas;
 
-namespace Orbita.Api.Enriquecimiento;
+namespace Orbita.Domain.Fichas;
 
 [JsonConverter(typeof(FuenteSnapshotJsonConverter))]
 public enum FuenteSnapshot

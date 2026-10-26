@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Orbita.Api.Enriquecimiento;
+using Orbita.Domain.Fichas;
 using Orbita.Api.Fichas;
 
 namespace Orbita.Api.Tests;

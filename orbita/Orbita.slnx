@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Orbita.Domain/Orbita.Domain.csproj" />
     <Project Path="src/Orbita.Api/Orbita.Api.csproj" />
   </Folder>
   <Folder Name="/src/Orbita.AppHost/">
