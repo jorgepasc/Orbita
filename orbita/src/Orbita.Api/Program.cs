@@ -110,6 +110,12 @@ app.MapGet("/api/auth/me", (ClaimsPrincipal principal) =>
 app.MapFichaEndpoints();
 app.MapEnriquecimientoEndpoints();
 
+// En producción la API sirve también el build de Angular desde wwwroot.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+app.MapFallback("/api/{**rest}", () => Results.NotFound()).AllowAnonymous();
+app.MapFallbackToFile("index.html").AllowAnonymous();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
