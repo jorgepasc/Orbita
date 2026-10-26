@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Orbita.Application.Fichas;
 using Orbita.Domain.Fichas;
 
-namespace Orbita.Api.Fichas;
+namespace Orbita.Infrastructure.Persistencia;
 
 public sealed class FichaRepositorio(FichaDbContext database) : IFichaRepositorio
 {

@@ -1,29 +1,19 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Orbita.Api.Autenticacion;
 using Orbita.Api.Enriquecimiento;
 using Orbita.Api.Fichas;
 using Orbita.Application;
 using Orbita.Application.Autenticacion;
-using Orbita.Application.Enriquecimiento;
-using Orbita.Application.Fichas;
+using Orbita.Infrastructure;
+using Orbita.Infrastructure.Autenticacion;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-builder.Services
-    .AddOptions<AuthenticationSettings>()
-    .BindConfiguration(AuthenticationSettings.SectionName)
-    .Validate(settings => settings.HasValidValues,
-        "Authentication username and password are required, the signing key must be at least 32 UTF-8 bytes, and token lifetime must be positive.")
-    .ValidateOnStart();
-builder.Services.AddSingleton(serviceProvider =>
-    serviceProvider.GetRequiredService<IOptions<AuthenticationSettings>>().Value);
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
@@ -39,7 +29,7 @@ builder.Services
             ValidateAudience = true,
             ValidAudience = settings.Audience,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = ServicioAutenticacionJwt.CrearClaveDeFirma(settings.SigningKey),
+            IssuerSigningKey = settings.ClaveDeFirma(),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero,
             NameClaimType = ClaimTypes.Name
@@ -54,27 +44,15 @@ builder.Services.AddAuthorization(options =>
 
 var databaseConnectionString = builder.Configuration.GetConnectionString("orbita");
 builder.Services.AddSingleton(new OrbitaDatabaseOptions(databaseConnectionString));
-builder.Services.AddDbContext<FichaDbContext>(options => options.UseNpgsql(databaseConnectionString));
 
 builder.Services.AddApplication();
-builder.Services.AddScoped<IFichaRepositorio, FichaRepositorio>();
-builder.Services.AddSingleton<IServicioAutenticacion, ServicioAutenticacionJwt>();
-
-builder.Services.AddOptions<TmdbOptions>().BindConfiguration(TmdbOptions.SectionName);
-builder.Services.AddOptions<RawgOptions>().BindConfiguration(RawgOptions.SectionName);
-builder.Services.AddHttpClient<TmdbProveedor>();
-builder.Services.AddHttpClient<RawgProveedor>();
-builder.Services.AddHttpClient<OpenLibraryProveedor>();
-builder.Services.AddTransient<IProveedorEnriquecimiento>(sp => sp.GetRequiredService<TmdbProveedor>());
-builder.Services.AddTransient<IProveedorEnriquecimiento>(sp => sp.GetRequiredService<RawgProveedor>());
-builder.Services.AddTransient<IProveedorEnriquecimiento>(sp => sp.GetRequiredService<OpenLibraryProveedor>());
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
 if (!string.IsNullOrWhiteSpace(databaseConnectionString))
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    await scope.ServiceProvider.GetRequiredService<FichaDbContext>().Database.MigrateAsync();
+    await app.Services.AplicarMigracionesAsync();
 }
 
 app.MapDefaultEndpoints();

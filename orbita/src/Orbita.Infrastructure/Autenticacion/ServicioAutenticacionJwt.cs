@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Orbita.Application.Autenticacion;
 
-namespace Orbita.Api.Autenticacion;
+namespace Orbita.Infrastructure.Autenticacion;
 
 public sealed class ServicioAutenticacionJwt(AuthenticationSettings settings) : IServicioAutenticacion
 {
@@ -26,14 +26,11 @@ public sealed class ServicioAutenticacionJwt(AuthenticationSettings settings) : 
             notBefore: now.UtcDateTime,
             expires: expiresAt.UtcDateTime,
             signingCredentials: new SigningCredentials(
-                CrearClaveDeFirma(settings.SigningKey),
+                settings.ClaveDeFirma(),
                 SecurityAlgorithms.HmacSha256));
 
         return new SesionIniciada(new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
-
-    public static SymmetricSecurityKey CrearClaveDeFirma(string signingKey) =>
-        new(Encoding.UTF8.GetBytes(signingKey));
 
     private static bool CredentialsMatch(string? actual, string expected)
     {

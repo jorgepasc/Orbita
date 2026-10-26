@@ -18,4 +18,4 @@ public interface IProveedorEnriquecimiento
     Task<Snapshot> ConstruirSnapshotAsync(TipoFicha tipo, string idExterno, CancellationToken cancellationToken);
 }
 
-public sealed class ApiExternaException(string mensaje) : Exception(mensaje);
+public sealed class ApiExternaException(string mensaje, Exception? causa = null) : Exception(mensaje, causa);

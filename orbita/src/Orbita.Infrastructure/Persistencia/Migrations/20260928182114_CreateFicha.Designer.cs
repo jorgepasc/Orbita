@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Orbita.Api.Fichas;
+using Orbita.Infrastructure.Persistencia;
 
 #nullable disable
 
-namespace Orbita.Api.Fichas.Migrations
+namespace Orbita.Infrastructure.Persistencia.Migrations
 {
     [DbContext(typeof(FichaDbContext))]
-    [Migration("20260928183543_AddNullableFichaSnapshot")]
-    partial class AddNullableFichaSnapshot
+    [Migration("20260928182114_CreateFicha")]
+    partial class CreateFicha
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,9 +41,6 @@ namespace Orbita.Api.Fichas.Migrations
 
                     b.Property<DateOnly?>("Fecha")
                         .HasColumnType("date");
-
-                    b.Property<string>("Snapshot")
-                        .HasColumnType("jsonb");
 
                     b.Property<bool>("Terminado")
                         .HasColumnType("boolean");

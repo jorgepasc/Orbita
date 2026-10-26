@@ -1,4 +1,7 @@
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
+
+namespace Orbita.Infrastructure.Autenticacion;
 
 public sealed class AuthenticationSettings
 {
@@ -21,4 +24,6 @@ public sealed class AuthenticationSettings
         && !string.IsNullOrEmpty(SigningKey)
         && Encoding.UTF8.GetByteCount(SigningKey) >= 32
         && TokenLifetimeMinutes >= 1;
+
+    public SymmetricSecurityKey ClaveDeFirma() => new(Encoding.UTF8.GetBytes(SigningKey));
 }

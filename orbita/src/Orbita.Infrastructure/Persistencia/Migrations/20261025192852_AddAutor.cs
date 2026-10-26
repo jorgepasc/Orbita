@@ -2,18 +2,19 @@
 
 #nullable disable
 
-namespace Orbita.Api.Fichas.Migrations
+namespace Orbita.Infrastructure.Persistencia.Migrations
 {
     /// <inheritdoc />
-    public partial class AddNullableFichaSnapshot : Migration
+    public partial class AddAutor : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "Snapshot",
+                name: "Autor",
                 table: "Ficha",
-                type: "jsonb",
+                type: "character varying(200)",
+                maxLength: 200,
                 nullable: true);
         }
 
@@ -21,7 +22,7 @@ namespace Orbita.Api.Fichas.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Snapshot",
+                name: "Autor",
                 table: "Ficha");
         }
     }

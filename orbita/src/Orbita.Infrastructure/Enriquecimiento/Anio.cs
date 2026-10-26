@@ -1,4 +1,4 @@
-namespace Orbita.Api.Enriquecimiento;
+namespace Orbita.Infrastructure.Enriquecimiento;
 
 internal static class Anio
 {

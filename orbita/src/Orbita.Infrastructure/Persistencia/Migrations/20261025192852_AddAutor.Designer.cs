@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Orbita.Api.Fichas;
+using Orbita.Infrastructure.Persistencia;
 
 #nullable disable
 
-namespace Orbita.Api.Fichas.Migrations
+namespace Orbita.Infrastructure.Persistencia.Migrations
 {
     [DbContext(typeof(FichaDbContext))]
     [Migration("20261025192852_AddAutor")]

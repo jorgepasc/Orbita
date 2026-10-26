@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Orbita.Api.Fichas;
 using Orbita.Application.Enriquecimiento;
 using Orbita.Domain.Fichas;
@@ -97,5 +96,5 @@ public static class EnriquecimientoEndpoints
         title: "No se pudo consultar la API externa.");
 
     private static bool EsFalloApiExterna(Exception exception) =>
-        exception is ApiExternaException or HttpRequestException or JsonException;
+        exception is ApiExternaException;
 }

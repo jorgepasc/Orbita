@@ -6,8 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Orbita.Api.Enriquecimiento;
-using Orbita.Api.Fichas;
+using Orbita.Infrastructure.Enriquecimiento;
+using Orbita.Infrastructure.Persistencia;
 
 namespace Orbita.Api.Tests;
 

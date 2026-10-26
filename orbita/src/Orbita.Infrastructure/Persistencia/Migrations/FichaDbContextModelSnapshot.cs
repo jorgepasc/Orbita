@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Orbita.Api.Fichas;
+using Orbita.Infrastructure.Persistencia;
 
 #nullable disable
 
-namespace Orbita.Api.Fichas.Migrations
+namespace Orbita.Infrastructure.Persistencia.Migrations
 {
     [DbContext(typeof(FichaDbContext))]
     partial class FichaDbContextModelSnapshot : ModelSnapshot

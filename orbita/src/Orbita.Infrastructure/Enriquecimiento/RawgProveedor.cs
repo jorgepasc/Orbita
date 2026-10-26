@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Orbita.Application.Enriquecimiento;
 using Orbita.Domain.Fichas;
 
-namespace Orbita.Api.Enriquecimiento;
+namespace Orbita.Infrastructure.Enriquecimiento;
 
 public sealed class RawgOptions
 {

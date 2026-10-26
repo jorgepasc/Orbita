@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Orbita.Api.Fichas.Migrations
+namespace Orbita.Infrastructure.Persistencia.Migrations
 {
     /// <inheritdoc />
     public partial class AddPlataformaEIdioma : Migration

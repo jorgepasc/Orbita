@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Orbita.Domain.Fichas;
 
-namespace Orbita.Api.Fichas;
+namespace Orbita.Infrastructure.Persistencia;
 
 // Formato del Snapshot en la columna jsonb. No cambiar nombres ni orden: hay datos persistidos.
 internal sealed record SnapshotDocumento(
