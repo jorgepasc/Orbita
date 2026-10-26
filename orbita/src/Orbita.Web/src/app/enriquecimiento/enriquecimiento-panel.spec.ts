@@ -111,17 +111,15 @@ describe('EnriquecimientoPanel', () => {
     http
       .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula')
       .flush([{ idExterno: '1', titulo: 'Dune', anio: 2021, portada: null, notaExterna: null }]);
-    http
-      .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie')
-      .flush([
-        {
-          idExterno: '1',
-          titulo: 'Dune: La hermandad',
-          anio: 2024,
-          portada: null,
-          notaExterna: null,
-        },
-      ]);
+    http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie').flush([
+      {
+        idExterno: '1',
+        titulo: 'Dune: La hermandad',
+        anio: 2024,
+        portada: null,
+        notaExterna: null,
+      },
+    ]);
     fixture.detectChanges();
 
     const etiquetas = Array.from(
@@ -136,17 +134,15 @@ describe('EnriquecimientoPanel', () => {
 
     await buscar('Dune');
     http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula').flush([]);
-    http
-      .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie')
-      .flush([
-        {
-          idExterno: '99',
-          titulo: 'Dune: La hermandad',
-          anio: 2024,
-          portada: null,
-          notaExterna: null,
-        },
-      ]);
+    http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie').flush([
+      {
+        idExterno: '99',
+        titulo: 'Dune: La hermandad',
+        anio: 2024,
+        portada: null,
+        notaExterna: null,
+      },
+    ]);
     fixture.detectChanges();
 
     (fixture.nativeElement.querySelector('.resultado') as HTMLButtonElement).click();
@@ -166,17 +162,15 @@ describe('EnriquecimientoPanel', () => {
     http
       .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Pel%C3%ADcula')
       .flush(null, { status: 502, statusText: 'Bad Gateway' });
-    http
-      .expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie')
-      .flush([
-        {
-          idExterno: '99',
-          titulo: 'Dune: La hermandad',
-          anio: 2024,
-          portada: null,
-          notaExterna: null,
-        },
-      ]);
+    http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Serie').flush([
+      {
+        idExterno: '99',
+        titulo: 'Dune: La hermandad',
+        anio: 2024,
+        portada: null,
+        notaExterna: null,
+      },
+    ]);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('.resultado').length).toBe(1);
