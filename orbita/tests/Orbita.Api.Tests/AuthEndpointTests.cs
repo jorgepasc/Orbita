@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Orbita.Api.Autenticacion;
 
 namespace Orbita.Api.Tests;
 
