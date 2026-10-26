@@ -36,7 +36,7 @@ Sustituir el dashboard plano por una librería organizada en tres Estanterías c
 ## Cambios en el modelo y la API
 
 - `Ficha` + migración: columnas nuevas `Plataforma` (string, nullable) e `Idioma` (string, nullable). `FichaInput`/`FichaResponse` las añaden.
-- Validación (`FichaEndpoints.Validate`): Fecha obligatoria siempre (antes solo si `Terminado`); `Plataforma` solo aceptada con Tipo Juego; `Idioma` solo con Tipo Libro o Cómic (error 400 en caso contrario, mismo criterio que la `fuente` del Snapshot).
+- Validación (agregado `Ficha`, `Ficha.TryCrear`/`Actualizar` en `Orbita.Domain`): Fecha obligatoria siempre (antes solo si `Terminado`); `Plataforma` solo aceptada con Tipo Juego; `Idioma` solo con Tipo Libro o Cómic (error 400 en caso contrario, mismo criterio que la `fuente` del Snapshot).
 - `GET /api/fichas` no cambia de forma: devuelve todas las Fichas; Estanterías, filtros, orden y búsqueda se resuelven en cliente.
 - Rutas Angular: `/pantalla`, `/lecturas`, `/juegos`, `/fichas/:id`; `''` → redirect a `/pantalla`.
 

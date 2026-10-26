@@ -54,6 +54,24 @@ como `Tmdb__BearerToken` y `Rawg__ApiKey`.
 
 La librería se navega por Estanterías (`/pantalla`, `/lecturas`, `/juegos`) y el detalle de cada Ficha vive en `/fichas/:id`. El backend recibe la conexión PostgreSQL en `ConnectionStrings__orbita`, gestionada por Aspire; el endpoint `GET /api/health` sigue disponible para Aspire y Azure aunque la UI ya no lo muestre.
 
+## Arquitectura del backend
+
+El backend sigue Clean Architecture con la regla de dependencias hacia dentro
+(`Api → Infrastructure → Application → Domain`); `tests/Orbita.Api.Tests/ArquitecturaTests.cs` la vigila.
+
+| Proyecto | Responsabilidad |
+|----------|-----------------|
+| `Orbita.Domain` | Agregado `Ficha` con sus invariantes (`TryCrear`/`Actualizar`), `TipoFicha`, `Snapshot` y `FuenteSnapshot`. Sin dependencias. |
+| `Orbita.Application` | Casos de uso (`CrearFicha`, `BuscarResultados`…) y puertos: `IFichaRepositorio`, `IProveedorEnriquecimiento`, `IServicioAutenticacion`. |
+| `Orbita.Infrastructure` | EF Core/Postgres y migraciones, clientes de TMDB, RAWG y Open Library, emisión de JWT. Se registra con `AddInfrastructure()`. |
+| `Orbita.Api` | Endpoints HTTP, contratos (`FichaInput`, `SnapshotDto`…) y composición en `Program.cs`. |
+
+Las migraciones viven en `Orbita.Infrastructure` y se generan con la API como proyecto de arranque:
+
+```powershell
+dotnet ef migrations add NombreMigracion --project src/Orbita.Infrastructure --startup-project src/Orbita.Api --output-dir Persistencia/Migrations
+```
+
 ## Verificación
 
 ```powershell
