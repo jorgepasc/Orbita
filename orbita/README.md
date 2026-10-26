@@ -70,6 +70,26 @@ npm run build
 
 El build de producción de Angular incluye el manifest y el service worker de la PWA.
 
+## Despliegue
+
+Producción vive en Azure App Service F1 (Linux, .NET 10) con Postgres en Neon; ver el ADR
+[0003](../docs/adr/0003-infraestructura-coste-cero-azure-neon.md). La API sirve también el build de
+Angular desde `wwwroot`, así que hay un solo origen y un solo despliegue.
+
+- Recursos: grupo `rg-orbita`, plan `plan-orbita` (F1, France Central) y web app `orbita-jorgepasc`.
+- App settings de la web app: `ConnectionStrings__orbita` (formato Npgsql, conexión directa de Neon
+  sin pooler), `Authentication__Username`, `Authentication__Password`, `Authentication__SigningKey`,
+  `Tmdb__BearerToken` y `Rawg__ApiKey`.
+- Cada push a `master` que toque `orbita/` ejecuta `.github/workflows/deploy.yml`: tests, lint y
+  formato de backend y frontend, y después build de Angular, publish de la API y deploy.
+- El workflow necesita el secreto de GitHub `AZURE_WEBAPP_PUBLISH_PROFILE`, con el publish profile de
+  la web app (`az webapp deployment list-publishing-profiles -g rg-orbita -n orbita-jorgepasc --xml`).
+- La API aplica las migraciones al arrancar. Tras un periodo de inactividad la primera petición tarda
+  más (cold start del F1 y reactivación de Neon).
+
+Para usarla en el móvil, abre la URL de la web app y elige «Añadir a pantalla de inicio» para instalar
+la PWA.
+
 ### HTTPS en local
 
 La API (`https://localhost:7001`) y la web (`https://localhost:4200`) usan el certificado de desarrollo de .NET.

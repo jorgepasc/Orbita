@@ -1,0 +1,90 @@
+name: Deploy Orbita
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'orbita/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: orbita-jorgepasc
+  DOTNET_NOLOGO: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: orbita
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: orbita/src/Orbita.Web/package-lock.json
+
+      - name: Backend tests
+        run: dotnet test Orbita.slnx
+
+      - name: Backend format
+        run: dotnet format Orbita.slnx --verify-no-changes
+
+      - name: Frontend install
+        run: npm ci
+        working-directory: orbita/src/Orbita.Web
+
+      - name: Frontend tests
+        run: npm test
+        working-directory: orbita/src/Orbita.Web
+
+      - name: Frontend lint
+        run: npm run lint
+        working-directory: orbita/src/Orbita.Web
+
+      - name: Frontend format
+        run: npm run format:check
+        working-directory: orbita/src/Orbita.Web
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: orbita/src/Orbita.Web/package-lock.json
+
+      - name: Build Angular
+        working-directory: orbita/src/Orbita.Web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publish API
+        run: dotnet publish orbita/src/Orbita.Api/Orbita.Api.csproj -c Release -o publish
+
+      - name: Add Angular build to wwwroot
+        run: |
+          mkdir -p publish/wwwroot
+          cp -r orbita/src/Orbita.Web/dist/Orbita.Web/browser/. publish/wwwroot/
+
+      - uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: publish
