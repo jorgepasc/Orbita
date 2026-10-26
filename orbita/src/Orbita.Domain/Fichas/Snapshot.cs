@@ -1,34 +1,10 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
 namespace Orbita.Domain.Fichas;
 
-[JsonConverter(typeof(FuenteSnapshotJsonConverter))]
 public enum FuenteSnapshot
 {
     Tmdb,
     Rawg,
     OpenLibrary
-}
-
-public sealed class FuenteSnapshotJsonConverter : JsonConverter<FuenteSnapshot>
-{
-    public override FuenteSnapshot Read(
-        ref Utf8JsonReader reader,
-        Type typeToConvert,
-        JsonSerializerOptions options) => reader.GetString() switch
-        {
-            "tmdb" => FuenteSnapshot.Tmdb,
-            "rawg" => FuenteSnapshot.Rawg,
-            "openlibrary" => FuenteSnapshot.OpenLibrary,
-            _ => throw new JsonException($"Fuente del Snapshot desconocida: {reader.GetString()}")
-        };
-
-    public override void Write(
-        Utf8JsonWriter writer,
-        FuenteSnapshot value,
-        JsonSerializerOptions options) =>
-        writer.WriteStringValue(FuentesSnapshot.Nombre(value));
 }
 
 public static class FuentesSnapshot
@@ -39,6 +15,25 @@ public static class FuentesSnapshot
         FuenteSnapshot.Rawg => "rawg",
         _ => "openlibrary"
     };
+
+    public static bool TryParse(string? nombre, out FuenteSnapshot fuente)
+    {
+        switch (nombre)
+        {
+            case "tmdb":
+                fuente = FuenteSnapshot.Tmdb;
+                return true;
+            case "rawg":
+                fuente = FuenteSnapshot.Rawg;
+                return true;
+            case "openlibrary":
+                fuente = FuenteSnapshot.OpenLibrary;
+                return true;
+            default:
+                fuente = default;
+                return false;
+        }
+    }
 
     public static FuenteSnapshot? PorTipo(TipoFicha tipo) => tipo switch
     {
@@ -52,10 +47,10 @@ public static class FuentesSnapshot
 }
 
 public sealed record Snapshot(
-    [property: JsonPropertyName("fuente")] FuenteSnapshot Fuente,
-    [property: JsonPropertyName("idExterno")] string IdExterno,
-    [property: JsonPropertyName("portada")] string? Portada,
-    [property: JsonPropertyName("anio")] int? Anio,
-    [property: JsonPropertyName("autoria")] string? Autoria,
-    [property: JsonPropertyName("notaExterna")] decimal? NotaExterna,
-    [property: JsonPropertyName("generos")] string[] Generos);
+    FuenteSnapshot Fuente,
+    string IdExterno,
+    string? Portada,
+    int? Anio,
+    string? Autoria,
+    decimal? NotaExterna,
+    string[] Generos);

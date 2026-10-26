@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Orbita.Api.Fichas;
 using Orbita.Domain.Fichas;
 
 namespace Orbita.Api.Enriquecimiento;
@@ -75,7 +76,7 @@ public static class EnriquecimientoEndpoints
             var snapshot = await proveedores
                 .Para(tipoFicha)
                 .ConstruirSnapshotAsync(tipoFicha, idExterno!.Trim(), cancellationToken);
-            return Results.Ok(snapshot);
+            return Results.Ok(SnapshotDto.Desde(snapshot));
         });
     }
 

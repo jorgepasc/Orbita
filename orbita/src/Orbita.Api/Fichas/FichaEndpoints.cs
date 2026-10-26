@@ -44,15 +44,11 @@ public static class FichaEndpoints
         FichaDbContext database,
         CancellationToken cancellationToken)
     {
-        var errors = Validate(input, input.Snapshot, out var tipo);
-        if (errors.Count > 0)
+        if (!Ficha.TryCrear(ADatos(input), input.Snapshot?.ADominio(), out var ficha, out var errores))
         {
-            return Results.ValidationProblem(errors);
+            return Invalido(errores);
         }
 
-        var ficha = new Ficha();
-        Apply(input, tipo, ficha);
-        ficha.Snapshot = input.Snapshot;
         database.Fichas.Add(ficha);
         await database.SaveChangesAsync(cancellationToken);
 
@@ -71,13 +67,12 @@ public static class FichaEndpoints
             return Results.NotFound();
         }
 
-        var errors = Validate(input, ficha.Snapshot, out var tipo);
-        if (errors.Count > 0)
+        var errores = ficha.Actualizar(ADatos(input));
+        if (errores.Hay)
         {
-            return Results.ValidationProblem(errors);
+            return Invalido(errores);
         }
 
-        Apply(input, tipo, ficha);
         await database.SaveChangesAsync(cancellationToken);
 
         return Results.Ok(FichaResponse.From(ficha));
@@ -99,118 +94,20 @@ public static class FichaEndpoints
         return Results.NoContent();
     }
 
-    private static Dictionary<string, string[]> Validate(
-        FichaInput input,
-        Snapshot? snapshot,
-        out TipoFicha tipo)
-    {
-        var errors = new Dictionary<string, string[]>();
-        tipo = default;
+    private static DatosFicha ADatos(FichaInput input) => new(
+        input.Titulo,
+        input.Tipo,
+        input.Fecha,
+        input.Terminado,
+        input.Valoracion,
+        input.Comentarios,
+        input.Compania,
+        input.Plataforma,
+        input.Idioma,
+        input.Autor);
 
-        if (string.IsNullOrWhiteSpace(input.Titulo))
-        {
-            errors[nameof(input.Titulo)] = ["El título es obligatorio."];
-        }
-        else if (input.Titulo.Trim().Length > 300)
-        {
-            errors[nameof(input.Titulo)] = ["El título no puede superar los 300 caracteres."];
-        }
-
-        if (!TiposFicha.TryParse(input.Tipo, out tipo))
-        {
-            errors[nameof(input.Tipo)] = ["El Tipo debe ser Película, Serie, Libro, Juego o Cómic."];
-        }
-        else
-        {
-            if (snapshot is not null)
-            {
-                if (string.IsNullOrWhiteSpace(snapshot.IdExterno))
-                {
-                    errors["snapshot.idExterno"] = ["El Snapshot necesita un idExterno."];
-                }
-                else if (!FuentesSnapshot.EsCompatible(snapshot.Fuente, tipo))
-                {
-                    errors["snapshot.fuente"] =
-                        [$"La fuente '{FuentesSnapshot.Nombre(snapshot.Fuente)}' no es válida para el Tipo {TiposFicha.Nombre(tipo)}."];
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(input.Plataforma) && tipo != TipoFicha.Juego)
-            {
-                errors[nameof(input.Plataforma)] =
-                    ["La Plataforma solo está disponible para el Tipo Juego."];
-            }
-
-            if (!string.IsNullOrWhiteSpace(input.Compania) && tipo == TipoFicha.Libro)
-            {
-                errors[nameof(input.Compania)] =
-                    ["La Compañía no está disponible para el Tipo Libro."];
-            }
-
-            if (!string.IsNullOrWhiteSpace(input.Autor) && tipo != TipoFicha.Libro)
-            {
-                errors[nameof(input.Autor)] =
-                    ["El Autor solo está disponible para el Tipo Libro."];
-            }
-
-            if (!string.IsNullOrWhiteSpace(input.Idioma) && tipo is not (TipoFicha.Libro or TipoFicha.Comic))
-            {
-                errors[nameof(input.Idioma)] =
-                    ["El Idioma solo está disponible para los Tipos Libro y Cómic."];
-            }
-        }
-
-        if (input.Fecha is null)
-        {
-            errors[nameof(input.Fecha)] = ["La Fecha es obligatoria."];
-        }
-
-        if (input.Valoracion is < 0 or > 10)
-        {
-            errors[nameof(input.Valoracion)] = ["La Valoración debe estar entre 0 y 10."];
-        }
-
-        if (input.Comentarios?.Length > 4000)
-        {
-            errors[nameof(input.Comentarios)] = ["Los Comentarios no pueden superar los 4000 caracteres."];
-        }
-
-        if (input.Compania?.Length > 200)
-        {
-            errors[nameof(input.Compania)] = ["La Compañía no puede superar los 200 caracteres."];
-        }
-
-        if (input.Plataforma?.Length > 200)
-        {
-            errors[nameof(input.Plataforma)] = ["La Plataforma no puede superar los 200 caracteres."];
-        }
-
-        if (input.Autor?.Length > 200)
-        {
-            errors[nameof(input.Autor)] = ["El Autor no puede superar los 200 caracteres."];
-        }
-
-        if (input.Idioma?.Length > 200)
-        {
-            errors[nameof(input.Idioma)] = ["El Idioma no puede superar los 200 caracteres."];
-        }
-
-        return errors;
-    }
-
-    private static void Apply(FichaInput input, TipoFicha tipo, Ficha ficha)
-    {
-        ficha.Titulo = input.Titulo!.Trim();
-        ficha.Tipo = tipo;
-        ficha.Fecha = input.Fecha;
-        ficha.Terminado = input.Terminado;
-        ficha.Valoracion = input.Valoracion;
-        ficha.Comentarios = input.Comentarios;
-        ficha.Compania = input.Compania;
-        ficha.Plataforma = input.Plataforma;
-        ficha.Idioma = input.Idioma;
-        ficha.Autor = input.Autor;
-    }
+    private static IResult Invalido(ErroresValidacion errores) =>
+        Results.ValidationProblem(new Dictionary<string, string[]>(errores.Detalle));
 }
 
 public sealed record FichaInput(
@@ -224,7 +121,7 @@ public sealed record FichaInput(
     string? Plataforma,
     string? Idioma,
     string? Autor,
-    Snapshot? Snapshot);
+    SnapshotDto? Snapshot);
 
 public sealed record FichaResponse(
     Guid Id,
@@ -238,7 +135,7 @@ public sealed record FichaResponse(
     string? Plataforma,
     string? Idioma,
     string? Autor,
-    Snapshot? Snapshot)
+    SnapshotDto? Snapshot)
 {
     public static FichaResponse From(Ficha ficha) => new(
         ficha.Id,
@@ -252,5 +149,5 @@ public sealed record FichaResponse(
         ficha.Plataforma,
         ficha.Idioma,
         ficha.Autor,
-        ficha.Snapshot);
+        ficha.Snapshot is null ? null : SnapshotDto.Desde(ficha.Snapshot));
 }
