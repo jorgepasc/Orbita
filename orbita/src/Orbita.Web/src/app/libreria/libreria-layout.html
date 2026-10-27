@@ -1,7 +1,7 @@
 <div class="libreria">
   <header class="barra">
     <span class="marca">ORBITA</span>
-    <nav class="nav" aria-label="Estanterías">
+    <nav class="nav" aria-label="Navegación">
       @for (estanteria of estanterias; track estanteria.id) {
         <a
           class="nav-enlace"
@@ -12,6 +12,7 @@
           {{ estanteria.nombre }}
         </a>
       }
+      <a class="nav-enlace" routerLink="/copia-seguridad" routerLinkActive="activa">Copia</a>
     </nav>
   </header>
 

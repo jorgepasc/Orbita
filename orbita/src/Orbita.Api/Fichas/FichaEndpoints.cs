@@ -68,7 +68,7 @@ public static class FichaEndpoints
         CancellationToken cancellationToken) =>
         await eliminarFicha.EjecutarAsync(id, cancellationToken) ? Results.NoContent() : Results.NotFound();
 
-    private static DatosFicha ADatos(FichaInput input) => new(
+    internal static DatosFicha ADatos(FichaInput input) => new(
         input.Titulo,
         input.Tipo,
         input.Fecha,

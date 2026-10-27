@@ -1,0 +1,86 @@
+:host {
+  display: block;
+}
+
+.copia {
+  max-width: 40rem;
+}
+
+h1 {
+  margin: 0 0 0.75rem;
+  color: #20221f;
+  font:
+    700 clamp(2rem, 6vw, 3rem)/1 Georgia,
+    serif;
+  letter-spacing: -0.05em;
+}
+
+.intro {
+  margin: 0 0 2rem;
+  color: #4f554e;
+  font:
+    400 0.95rem/1.5 'IBM Plex Mono',
+    monospace;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+button,
+.boton {
+  min-height: 3rem;
+  padding: 0.8rem 1.25rem;
+  border: 1px solid #20221f;
+  background: #20221f;
+  color: #fffdf8;
+  cursor: pointer;
+  font:
+    700 0.9rem/1.3 'IBM Plex Mono',
+    monospace;
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  background: #fffdf8;
+  color: #20221f;
+}
+
+.boton input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.boton:focus-within,
+button:focus-visible {
+  outline: 3px solid #a14d32;
+  outline-offset: 2px;
+}
+
+button:disabled,
+.boton.deshabilitado {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.resultado,
+.errores {
+  margin: 1.5rem 0 0;
+  font:
+    400 0.85rem/1.5 'IBM Plex Mono',
+    monospace;
+}
+
+.resultado {
+  color: #20221f;
+}
+
+.errores {
+  padding-left: 1.25rem;
+  color: #a52f27;
+}

@@ -1,0 +1,48 @@
+name: Backup Orbita
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      ORBITA_URL: ${{ secrets.ORBITA_URL }}
+      ORBITA_USERNAME: ${{ secrets.ORBITA_USERNAME }}
+      ORBITA_PASSWORD: ${{ secrets.ORBITA_PASSWORD }}
+    steps:
+      - name: Login
+        run: |
+          # Reintentos amplios: App Service F1 arranca en frío y Neon puede estar suspendida.
+          jq -n --arg u "$ORBITA_USERNAME" --arg p "$ORBITA_PASSWORD" '{username: $u, password: $p}' \
+            | curl --fail --silent --show-error \
+                --retry 5 --retry-all-errors --retry-delay 20 --max-time 120 \
+                -H 'Content-Type: application/json' --data @- \
+                "$ORBITA_URL/api/auth/login" > login.json
+          jq -r '.accessToken' login.json > token.txt
+          rm login.json
+
+      - name: Download backup
+        run: |
+          curl --fail --silent --show-error \
+            --retry 5 --retry-all-errors --retry-delay 20 --max-time 180 \
+            -H "Authorization: Bearer $(cat token.txt)" \
+            "$ORBITA_URL/api/copia-seguridad" > copia.json
+          rm token.txt
+          jq -e '.version == 1 and (.fichas | type == "array")' copia.json > /dev/null
+          echo "Fichas en la copia: $(jq '.fichas | length' copia.json)"
+
+      - name: Name backup
+        run: mv copia.json "orbita-$(date -u +%Y-%m-%d).json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orbita-backup
+          path: orbita-*.json
+          retention-days: 90
+          if-no-files-found: error

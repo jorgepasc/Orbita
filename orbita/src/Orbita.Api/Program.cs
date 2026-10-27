@@ -1,4 +1,5 @@
 using Orbita.Api.Autenticacion;
+using Orbita.Api.CopiaSeguridad;
 using Orbita.Api.Enriquecimiento;
 using Orbita.Api.Fichas;
 using Orbita.Api.Salud;
@@ -29,6 +30,7 @@ app.MapDefaultEndpoints();
 app.MapHealthEndpoints();
 app.MapAuthEndpoints();
 app.MapFichaEndpoints();
+app.MapCopiaSeguridadEndpoints();
 app.MapEnriquecimientoEndpoints();
 
 // En producción la API sirve también el build de Angular desde wwwroot.

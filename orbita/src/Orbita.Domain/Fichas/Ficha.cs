@@ -51,6 +51,30 @@ public sealed class Ficha
         return true;
     }
 
+    // Recrea una Ficha de una Copia de seguridad conservando su Id original.
+    public static bool TryRestaurar(
+        Guid id,
+        DatosFicha datos,
+        Snapshot? snapshot,
+        [NotNullWhen(true)] out Ficha? ficha,
+        out ErroresValidacion errores)
+    {
+        var creada = TryCrear(datos, snapshot, out ficha, out errores);
+        if (id == Guid.Empty)
+        {
+            errores.Agregar("Id", "El Id es obligatorio.");
+        }
+
+        if (!creada || errores.Hay)
+        {
+            ficha = null;
+            return false;
+        }
+
+        ficha!.Id = id;
+        return true;
+    }
+
     // El Snapshot es inmutable tras crear (ADR 0002): no se puede pasar aquí.
     public ErroresValidacion Actualizar(DatosFicha datos)
     {
