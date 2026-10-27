@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Orbita.Application.CopiaSeguridad;
 using Orbita.Application.Enriquecimiento;
 using Orbita.Application.Fichas;
 
@@ -13,6 +14,7 @@ public static class DependencyInjection
         services.AddScoped<CrearFicha>();
         services.AddScoped<ActualizarFicha>();
         services.AddScoped<EliminarFicha>();
+        services.AddScoped<ImportarFichas>();
 
         services.AddTransient<SelectorProveedores>();
         services.AddTransient<BuscarResultados>();

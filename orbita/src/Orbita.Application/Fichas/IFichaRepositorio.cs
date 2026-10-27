@@ -10,6 +10,10 @@ public interface IFichaRepositorio
 
     Task<Ficha?> ObtenerParaModificarAsync(Guid id, CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<Ficha>> ObtenerVariasParaModificarAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken);
+
     void Agregar(Ficha ficha);
 
     void Eliminar(Ficha ficha);

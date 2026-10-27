@@ -72,6 +72,23 @@ Las migraciones viven en `Orbita.Infrastructure` y se generan con la API como pr
 dotnet ef migrations add NombreMigracion --project src/Orbita.Infrastructure --startup-project src/Orbita.Api --output-dir Persistencia/Migrations
 ```
 
+## Copia de seguridad
+
+Las Fichas viven solo en Neon Free, así que conviene tener una copia fuera. En la app, la pestaña
+**Copia** (`/copia-seguridad`) descarga un JSON (`{ version, exportadaEn, fichas[] }`, cada Ficha con
+su Snapshot) y permite restaurarlo: crea las Fichas que falten y actualiza las existentes por Id
+(su Snapshot no se modifica). Si alguna Ficha del fichero es inválida no se importa ninguna.
+La API lo expone en `GET`/`POST /api/copia-seguridad`.
+
+El workflow `.github/workflows/backup.yml` hace una copia cada lunes (y bajo demanda con
+*Run workflow*) y la guarda como artifact `orbita-backup` durante 90 días. Como el repositorio es
+público, cualquier usuario de GitHub con sesión puede descargar ese artifact: se sube sin cifrar
+porque las Fichas no son información sensible. Crea estos secrets en el repositorio:
+`ORBITA_URL` (URL base de la app, sin barra final), `ORBITA_USERNAME` y `ORBITA_PASSWORD`.
+
+GitHub desactiva los workflows programados de repositorios sin actividad durante 60 días; si
+pasa, reactívalo desde la pestaña Actions.
+
 ## Verificación
 
 ```powershell

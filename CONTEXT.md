@@ -56,6 +56,10 @@ _Avoid_: importación, scraping
 Cada candidatura devuelta por una API externa durante el Enriquecimiento, aún sin congelar. Elegir un Resultado dispara su construcción como Snapshot; el Tipo lo declara el usuario, no la API (Libro y Cómic consultan la misma API).
 _Avoid_: hit, match, sugerencia
 
+**Copia de seguridad**:
+Fichero JSON versionado con todas las Fichas y sus Snapshots, descargable desde la app y reimportable. Restaurar es un upsert por Id (crea las que faltan, actualiza las existentes sin tocar su Snapshot) y es todo o nada. No es Enriquecimiento ni una importación desde Excel.
+_Avoid_: export, dump, migración
+
 ## Decisiones
 
 Ver `docs/adr/` para las decisiones arquitectónicas: Ficha única con Tipo (0001), Snapshot al crear (0002) e infraestructura de coste cero todo-Azure + Neon (0003).

@@ -21,6 +21,13 @@ public sealed class FichaRepositorio(FichaDbContext database) : IFichaRepositori
     public Task<Ficha?> ObtenerParaModificarAsync(Guid id, CancellationToken cancellationToken) =>
         database.Fichas.FirstOrDefaultAsync(value => value.Id == id, cancellationToken);
 
+    public async Task<IReadOnlyList<Ficha>> ObtenerVariasParaModificarAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken cancellationToken) =>
+        await database.Fichas
+            .Where(ficha => ids.Contains(ficha.Id))
+            .ToListAsync(cancellationToken);
+
     public void Agregar(Ficha ficha) => database.Fichas.Add(ficha);
 
     public void Eliminar(Ficha ficha) => database.Fichas.Remove(ficha);

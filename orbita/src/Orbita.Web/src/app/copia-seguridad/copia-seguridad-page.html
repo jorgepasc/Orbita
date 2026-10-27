@@ -1,0 +1,33 @@
+<section class="copia" aria-labelledby="copia-titulo">
+  <h1 id="copia-titulo">Copia de seguridad</h1>
+  <p class="intro">
+    Descarga todas tus fichas en un fichero JSON, o restaura una copia anterior. Restaurar crea las
+    fichas que falten y actualiza las existentes; si alguna es inválida, no se importa ninguna.
+  </p>
+
+  <div class="acciones">
+    <button type="button" [disabled]="ocupado()" (click)="descargar()">Descargar copia</button>
+
+    <label class="boton" [class.deshabilitado]="ocupado()">
+      Restaurar copia
+      <input
+        type="file"
+        accept=".json,application/json"
+        [disabled]="ocupado()"
+        (change)="restaurar($event)"
+      />
+    </label>
+  </div>
+
+  @if (resultado(); as mensaje) {
+    <p class="resultado" role="status">{{ mensaje }}</p>
+  }
+
+  @if (errores().length > 0) {
+    <ul class="errores" role="alert">
+      @for (mensaje of errores(); track $index) {
+        <li>{{ mensaje }}</li>
+      }
+    </ul>
+  }
+</section>
