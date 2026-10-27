@@ -1,5 +1,6 @@
-using System.Text.Json;
 using Orbita.Api.Fichas;
+using Orbita.Application.Enriquecimiento;
+using Orbita.Domain.Fichas;
 
 namespace Orbita.Api.Enriquecimiento;
 
@@ -18,8 +19,8 @@ public static class EnriquecimientoEndpoints
     private static async Task<IResult> BuscarAsync(
         string? q,
         string? tipo,
-        ProveedoresEnriquecimiento proveedores,
-        ILogger<ProveedoresEnriquecimiento> logger,
+        BuscarResultados buscarResultados,
+        ILogger<SelectorProveedores> logger,
         CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string[]>();
@@ -41,7 +42,7 @@ public static class EnriquecimientoEndpoints
 
         return await ConApiExterna(logger, async () =>
         {
-            var resultados = await proveedores.Para(tipoFicha).BuscarAsync(tipoFicha, q!.Trim(), cancellationToken);
+            var resultados = await buscarResultados.EjecutarAsync(tipoFicha, q!.Trim(), cancellationToken);
             return Results.Ok(resultados);
         });
     }
@@ -49,8 +50,8 @@ public static class EnriquecimientoEndpoints
     private static async Task<IResult> SnapshotAsync(
         string? tipo,
         string? idExterno,
-        ProveedoresEnriquecimiento proveedores,
-        ILogger<ProveedoresEnriquecimiento> logger,
+        ConstruirSnapshot construirSnapshot,
+        ILogger<SelectorProveedores> logger,
         CancellationToken cancellationToken)
     {
         var errors = new Dictionary<string, string[]>();
@@ -72,10 +73,8 @@ public static class EnriquecimientoEndpoints
 
         return await ConApiExterna(logger, async () =>
         {
-            var snapshot = await proveedores
-                .Para(tipoFicha)
-                .ConstruirSnapshotAsync(tipoFicha, idExterno!.Trim(), cancellationToken);
-            return Results.Ok(snapshot);
+            var snapshot = await construirSnapshot.EjecutarAsync(tipoFicha, idExterno!.Trim(), cancellationToken);
+            return Results.Ok(SnapshotDto.Desde(snapshot));
         });
     }
 
@@ -97,5 +96,5 @@ public static class EnriquecimientoEndpoints
         title: "No se pudo consultar la API externa.");
 
     private static bool EsFalloApiExterna(Exception exception) =>
-        exception is ApiExternaException or HttpRequestException or JsonException;
+        exception is ApiExternaException;
 }
