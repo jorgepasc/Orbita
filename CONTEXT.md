@@ -44,6 +44,10 @@ _Avoid_: consola, dispositivo, sistema
 Dato manual opcional de los Tipos Libro y Cómic: en qué idioma se leyó. No viene del Snapshot.
 _Avoid_: lengua, traducción
 
+**Autor**:
+Dato manual opcional del Tipo Libro: quién lo escribió. Al elegir un Resultado se autorrellena con la autoría del Snapshot si está vacío, y después es editable.
+_Avoid_: escritor, autoría (la autoría es el campo del Snapshot)
+
 **Snapshot**:
 Copia congelada de los datos de las APIs externas capturada al crear la Ficha: portada (URL de CDN), año, autoría (director o creador en Película/Serie, estudio en Juego, autor en Libro/Cómic), Nota Externa, géneros e IDs externos. Navegar la app nunca llama a las APIs externas.
 _Avoid_: caché, metadatos
