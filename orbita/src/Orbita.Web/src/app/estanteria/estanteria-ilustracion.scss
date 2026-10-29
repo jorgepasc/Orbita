@@ -1,0 +1,75 @@
+:host {
+  display: inline-flex;
+  flex: none;
+  width: clamp(3.25rem, 7vw, 5rem);
+  height: clamp(3.25rem, 7vw, 5rem);
+  margin-right: clamp(0.6rem, 1.5vw, 1rem);
+  color: #20221f;
+  vertical-align: bottom;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.acento {
+  stroke: #a14d32;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .claqueta {
+    transform-box: fill-box;
+    transform-origin: 0% 100%;
+    animation: claqueta 0.9s ease-out 0.2s both;
+  }
+
+  .bocadillo {
+    animation: flotar 3s ease-in-out infinite;
+  }
+
+  .mando {
+    transform-box: fill-box;
+    transform-origin: 50% 60%;
+    animation: inclinar 0.9s ease-out 0.2s both;
+  }
+
+  :host(:hover) .claqueta,
+  :host(:hover) .mando {
+    animation-iteration-count: infinite;
+  }
+}
+
+@keyframes claqueta {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  40% {
+    transform: rotate(-14deg);
+  }
+}
+
+@keyframes flotar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes inclinar {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-8deg);
+  }
+  65% {
+    transform: rotate(6deg);
+  }
+}

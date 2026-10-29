@@ -158,6 +158,61 @@ describe('FichaFormPanel', () => {
     peticion.flush({});
   });
 
+  async function enriquecerLibro(fixture: ComponentFixture<FichaFormPanel>): Promise<void> {
+    escribir(fixture, '#consulta', 'Dune');
+    (
+      fixture.nativeElement.querySelector(
+        'app-enriquecimiento-panel button[type="submit"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    http.expectOne('/api/enriquecimiento/resultados?q=Dune&tipo=Libro').flush([
+      {
+        idExterno: '/works/OL893415W',
+        titulo: 'Dune',
+        anio: 1965,
+        portada: null,
+        notaExterna: null,
+      },
+    ]);
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.resultado') as HTMLButtonElement).click();
+    http
+      .expectOne((peticion) => peticion.url === '/api/enriquecimiento/snapshot')
+      .flush({
+        ...snapshot,
+        fuente: 'openlibrary',
+        idExterno: '/works/OL893415W',
+        autoria: 'Frank Herbert',
+        notaExterna: null,
+      });
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  it('autorrellena el Autor del Libro con la autoría del Snapshot', async () => {
+    const fixture = crear(['Libro']);
+
+    await enriquecerLibro(fixture);
+
+    expect((fixture.nativeElement.querySelector('#autor') as HTMLInputElement).value).toBe(
+      'Frank Herbert',
+    );
+  });
+
+  it('no sobrescribe el Autor que ya escribió el usuario', async () => {
+    const fixture = crear(['Libro']);
+    escribir(fixture, '#autor', 'F. Herbert');
+
+    await enriquecerLibro(fixture);
+
+    expect((fixture.nativeElement.querySelector('#autor') as HTMLInputElement).value).toBe(
+      'F. Herbert',
+    );
+  });
+
   it('muestra Compañía con su placeholder y no Autor fuera de Libro', () => {
     const fixture = crear(['Película']);
     const compania = fixture.nativeElement.querySelector('#compania') as HTMLInputElement;

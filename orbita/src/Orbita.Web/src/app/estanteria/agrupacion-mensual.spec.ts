@@ -1,5 +1,5 @@
 import type { Ficha } from '../fichas/ficha-api';
-import { agruparPorMes, normalizarTexto } from './agrupacion-mensual';
+import { agruparPorMes, normalizarTexto, ordenarPorValoracion } from './agrupacion-mensual';
 
 function ficha(parcial: Partial<Ficha> & { id: string; titulo: string; fecha: string }): Ficha {
   return {
@@ -43,6 +43,40 @@ describe('agruparPorMes', () => {
     const grupos = agruparPorMes([sinFecha]);
 
     expect(grupos).toEqual([]);
+  });
+});
+
+describe('ordenarPorValoracion', () => {
+  it('ordena por Valoración descendente con las Fichas sin nota al final', () => {
+    const ordenadas = ordenarPorValoracion([
+      ficha({ id: 'sin', titulo: 'Sin nota', fecha: '2026-03-01' }),
+      ficha({ id: 'siete', titulo: 'Siete', fecha: '2026-01-01', valoracion: 7 }),
+      ficha({ id: 'nueve', titulo: 'Nueve', fecha: '2026-02-01', valoracion: 9.5 }),
+      ficha({ id: 'cero', titulo: 'Cero', fecha: '2026-02-01', valoracion: 0 }),
+    ]);
+
+    expect(ordenadas.map((f) => f.id)).toEqual(['nueve', 'siete', 'cero', 'sin']);
+  });
+
+  it('desempata por Fecha descendente y después por título', () => {
+    const ordenadas = ordenarPorValoracion([
+      ficha({ id: 'zeta', titulo: 'Zeta', fecha: '2026-02-10', valoracion: 8 }),
+      ficha({ id: 'antigua', titulo: 'Antigua', fecha: '2026-01-10', valoracion: 8 }),
+      ficha({ id: 'alfa', titulo: 'Alfa', fecha: '2026-02-10', valoracion: 8 }),
+    ]);
+
+    expect(ordenadas.map((f) => f.id)).toEqual(['alfa', 'zeta', 'antigua']);
+  });
+
+  it('no muta el array recibido', () => {
+    const fichas = [
+      ficha({ id: 'baja', titulo: 'Baja', fecha: '2026-02-10', valoracion: 3 }),
+      ficha({ id: 'alta', titulo: 'Alta', fecha: '2026-02-10', valoracion: 9 }),
+    ];
+
+    ordenarPorValoracion(fichas);
+
+    expect(fichas.map((f) => f.id)).toEqual(['baja', 'alta']);
   });
 });
 

@@ -12,7 +12,27 @@
           {{ estanteria.nombre }}
         </a>
       }
-      <a class="nav-enlace" routerLink="/copia-seguridad" routerLinkActive="activa">Copia</a>
+      <a
+        class="nav-enlace nav-icono"
+        routerLink="/copia-seguridad"
+        routerLinkActive="activa"
+        aria-label="Copia de seguridad"
+        data-tooltip="Copia de seguridad"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M4 14v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5" />
+          <path d="M12 3v11M7.5 9.5 12 14l4.5-4.5" />
+        </svg>
+      </a>
     </nav>
   </header>
 

@@ -1,7 +1,7 @@
 <header class="cabecera">
   <div>
     <p class="eyebrow">ORBITA / {{ estanteria.nombre }}</p>
-    <h1>{{ estanteria.nombre }}</h1>
+    <h1><app-estanteria-ilustracion [estanteria]="estanteria.id" />{{ estanteria.nombre }}</h1>
   </div>
   <button class="primary-button" type="button" (click)="abrirCreacion()">
     Nueva Ficha <span aria-hidden="true">＋</span>
@@ -21,6 +21,19 @@
       }
     </div>
   }
+
+  <div class="segmented" role="group" aria-label="Ordenar por">
+    <button type="button" [class.activa]="orden() === 'fecha'" (click)="orden.set('fecha')">
+      Fecha
+    </button>
+    <button
+      type="button"
+      [class.activa]="orden() === 'valoracion'"
+      (click)="orden.set('valoracion')"
+    >
+      Valoración
+    </button>
+  </div>
 
   <label class="busqueda" for="busqueda">
     <span class="sr-only">Buscar por título</span>
@@ -51,43 +64,51 @@
       Crear primera Ficha
     </button>
   </div>
+} @else if (orden() === 'valoracion') {
+  <div class="grid">
+    @for (ficha of ranking(); track ficha.id) {
+      <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: ficha }" />
+    }
+  </div>
 } @else {
   @for (grupo of grupos(); track grupo.clave) {
     <section class="mes" [attr.aria-label]="grupo.etiqueta">
       <h2 class="mes-titulo">{{ grupo.etiqueta }}</h2>
       <div class="grid">
         @for (ficha of grupo.fichas; track ficha.id) {
-          <a class="tarjeta" [routerLink]="['/fichas', ficha.id]">
-            <div class="portada">
-              @if (ficha.snapshot?.portada; as portada) {
-                <img [src]="portada" alt="" loading="lazy" />
-              } @else {
-                <span class="portada-placeholder" aria-hidden="true">Sin portada</span>
-              }
-              @if (primerGenero(ficha); as genero) {
-                <span class="genero-chip">{{ genero }}</span>
-              }
-              @if (!ficha.terminado) {
-                <span class="marca-no-continuada">No continuada</span>
-              }
-            </div>
-            <h3>{{ ficha.titulo }}</h3>
-            <p class="notas">
-              @if (ficha.valoracion !== null) {
-                <span class="valoracion"
-                  ><span aria-hidden="true">✳</span> {{ ficha.valoracion }}</span
-                >
-              }
-              @if (notaExterna(ficha); as nota) {
-                <span class="nota-externa">{{ nota }}</span>
-              }
-            </p>
-          </a>
+          <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: ficha }" />
         }
       </div>
     </section>
   }
 }
+
+<ng-template #tarjeta let-ficha>
+  <a class="tarjeta" [routerLink]="['/fichas', ficha.id]">
+    <div class="portada">
+      @if (ficha.snapshot?.portada; as portada) {
+        <img [src]="portada" alt="" loading="lazy" />
+      } @else {
+        <span class="portada-placeholder" aria-hidden="true">Sin portada</span>
+      }
+      @if (primerGenero(ficha); as genero) {
+        <span class="genero-chip">{{ genero }}</span>
+      }
+      @if (!ficha.terminado) {
+        <span class="marca-no-continuada">No continuada</span>
+      }
+    </div>
+    <h3>{{ ficha.titulo }}</h3>
+    <p class="notas">
+      @if (ficha.valoracion !== null) {
+        <span class="valoracion"><span aria-hidden="true">✳</span> {{ ficha.valoracion }}</span>
+      }
+      @if (notaExterna(ficha); as nota) {
+        <span class="nota-externa">{{ nota }}</span>
+      }
+    </p>
+  </a>
+</ng-template>
 
 @if (mostrandoFormulario()) {
   <app-ficha-form-panel

@@ -102,6 +102,9 @@ export class FichaFormPanel implements OnInit {
     this.draft.tipo = elegido.tipo;
     this.draft.snapshot = elegido.snapshot;
     this.draft.titulo = elegido.titulo;
+    if (elegido.tipo === 'Libro' && !this.draft.autor?.trim()) {
+      this.draft.autor = elegido.snapshot.autoria;
+    }
     this.mostrarBusqueda.set(false);
   }
 
