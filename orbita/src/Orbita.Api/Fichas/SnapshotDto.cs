@@ -41,6 +41,7 @@ public sealed record SnapshotDto(
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "tipo")]
 [JsonDerivedType(typeof(DetallesPeliculaDto), "pelicula")]
 [JsonDerivedType(typeof(DetallesLibroDto), "libro")]
+[JsonDerivedType(typeof(DetallesJuegoDto), "juego")]
 public abstract record DetallesDto
 {
     public static DetallesDto? Desde(DetallesSnapshot? detalles) => detalles switch
@@ -51,6 +52,7 @@ public abstract record DetallesDto
             pelicula.Paises,
             pelicula.DuracionMinutos),
         DetallesLibro libro => new DetallesLibroDto(libro.Paginas),
+        DetallesJuego juego => new DetallesJuegoDto(juego.Plataformas, juego.HorasMedias),
         _ => throw new NotSupportedException($"Detalles sin DTO: {detalles.GetType().Name}")
     };
 
@@ -69,6 +71,13 @@ public sealed record DetallesLibroDto(
     [property: JsonPropertyName("paginas")] int? Paginas) : DetallesDto
 {
     public override DetallesSnapshot ADominio() => new DetallesLibro(Paginas);
+}
+
+public sealed record DetallesJuegoDto(
+    [property: JsonPropertyName("plataformas")] string[]? Plataformas,
+    [property: JsonPropertyName("horasMedias")] int? HorasMedias) : DetallesDto
+{
+    public override DetallesSnapshot ADominio() => new DetallesJuego(Plataformas ?? [], HorasMedias);
 }
 
 public sealed class FuenteSnapshotJsonConverter : JsonConverter<FuenteSnapshot>

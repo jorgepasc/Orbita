@@ -10,12 +10,17 @@ public sealed record DetallesPelicula(
 
 public sealed record DetallesLibro(int? Paginas) : DetallesSnapshot;
 
+public sealed record DetallesJuego(
+    string[] Plataformas,
+    int? HorasMedias) : DetallesSnapshot;
+
 public static class DetallesSnapshots
 {
     public static bool EsCompatible(DetallesSnapshot detalles, TipoFicha tipo) => detalles switch
     {
         DetallesPelicula => tipo == TipoFicha.Pelicula,
         DetallesLibro => tipo is TipoFicha.Libro or TipoFicha.Comic,
+        DetallesJuego => tipo == TipoFicha.Juego,
         _ => false
     };
 
@@ -23,6 +28,7 @@ public static class DetallesSnapshots
     {
         DetallesPelicula => "de película",
         DetallesLibro => "de libro",
+        DetallesJuego => "de juego",
         _ => detalles.GetType().Name
     };
 }

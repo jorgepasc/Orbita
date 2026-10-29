@@ -105,6 +105,27 @@ describe('FichaDetallePage', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Páginas: 662');
   });
 
+  it('muestra plataformas y horas medias de los detalles de Juego', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(
+      ficha({
+        id: 'ficha-1',
+        titulo: 'God of War',
+        tipo: 'Juego',
+        snapshot: {
+          ...snapshot,
+          fuente: 'rawg',
+          detalles: { tipo: 'juego', plataformas: ['PlayStation 5', 'PC'], horasMedias: 14 },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent;
+    expect(texto).toContain('Plataformas: PlayStation 5, PC');
+    expect(texto).toContain('Duración media: 14 h');
+  });
+
   it('no muestra datos de detalles si el Snapshot no los trae', () => {
     const fixture = crear();
     http.expectOne('/api/fichas/ficha-1').flush(ficha({ id: 'ficha-1', titulo: 'Dune', snapshot }));

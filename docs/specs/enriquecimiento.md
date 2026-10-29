@@ -47,7 +47,7 @@ Núcleo común para todos los Tipos más un `detalles` opcional propio de cada T
 }
 ```
 
-- `detalles`: se omite si el proveedor no aporta nada para ese Tipo. Hoy existen `pelicula` (actores principales, máximo 4; países en ISO 3166-1; duración) y `libro` (páginas, compartido por Libro y Cómic; Open Library solo las expone como `number_of_pages_median` en la búsqueda, así que es un dato aproximado y se omite si no hay). Juego (plataformas, horas medias) y Serie (actores, países, temporadas, episodios) llegarán como derivados nuevos. El dominio rechaza unos `detalles` que no correspondan al Tipo.
+- `detalles`: se omite si el proveedor no aporta nada para ese Tipo. Hoy existen `pelicula` (actores principales, máximo 4; países en ISO 3166-1; duración) y `libro` (páginas, compartido por Libro y Cómic; Open Library solo las expone como `number_of_pages_median` en la búsqueda, así que es un dato aproximado y se omite si no hay). `juego` (plataformas y horas medias; RAWG devuelve `playtime` 0 sin dato, que se trata como ausente). Serie (actores, países, temporadas, episodios) llegará como derivado nuevo. El dominio rechaza unos `detalles` que no correspondan al Tipo.
 
 - `autoria`: director (Película), creador (Serie, `created_by[0]`), estudio (Juego, `developers[0]`), autor (Libro/Cómic). El significado lo da el Tipo de la Ficha.
 - `notaExterna`: nula para Libro/Cómic y para juegos sin nota Metacritic.

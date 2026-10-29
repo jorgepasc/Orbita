@@ -32,7 +32,13 @@ export interface DetallesLibro {
   paginas: number | null;
 }
 
-export type DetallesSnapshot = DetallesPelicula | DetallesLibro;
+export interface DetallesJuego {
+  tipo: 'juego';
+  plataformas: string[];
+  horasMedias: number | null;
+}
+
+export type DetallesSnapshot = DetallesPelicula | DetallesLibro | DetallesJuego;
 
 const TIPOS_POR_FUENTE: Record<FuenteSnapshot, readonly TipoFicha[]> = {
   tmdb: ['Película', 'Serie'],

@@ -343,6 +343,11 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
               ],
               "genres": [
                 { "id": 4, "name": "Action" }
+              ],
+              "playtime": 14,
+              "platforms": [
+                { "platform": { "id": 187, "name": "PlayStation 5" } },
+                { "platform": { "id": 4, "name": "PC" } }
               ]
             }
             """);
@@ -361,8 +366,30 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         Assert.Equal(94m, snapshot.NotaExterna);
         Assert.Equal(["Action"], snapshot.Generos);
 
+        var detalles = snapshot.Detalles!.Value;
+        Assert.Equal("juego", detalles.GetProperty("tipo").GetString());
+        Assert.Equal(["PlayStation 5", "PC"], detalles.GetProperty("plataformas").Deserialize<string[]>()!);
+        Assert.Equal(14, detalles.GetProperty("horasMedias").GetInt32());
+
         var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("api.rawg.io/api/games/58175"));
         Assert.Contains("key=test-rawg-key", solicitud);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_juego_without_platforms_or_playtime_has_no_detalles()
+    {
+        await AuthenticateAsync();
+        apisExternas.Responder(
+            "api.rawg.io/api/games/1",
+            """{ "id": 1, "name": "Obscuro", "playtime": 0, "platforms": [] }""");
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Juego&idExterno=1");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Null(snapshot.Detalles);
     }
 
     [Fact]

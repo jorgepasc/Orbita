@@ -42,6 +42,13 @@
               @if (detalles.paginas; as paginas) {
                 <p class="anio"><strong>Páginas:</strong> {{ paginas }}</p>
               }
+            } @else if (detalles.tipo === 'juego') {
+              @if (detalles.plataformas.length > 0) {
+                <p class="anio"><strong>Plataformas:</strong> {{ detalles.plataformas.join(', ') }}</p>
+              }
+              @if (detalles.horasMedias; as horas) {
+                <p class="anio"><strong>Duración media:</strong> {{ horas }} h</p>
+              }
             }
           }
           @if (mostrarNotaExterna(ficha.tipo) && notaExterna(ficha); as nota) {
