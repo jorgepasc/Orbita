@@ -40,6 +40,7 @@ public sealed record SnapshotDto(
 // El discriminador "tipo" identifica la forma de los detalles; añadir un Tipo = añadir un derivado.
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "tipo")]
 [JsonDerivedType(typeof(DetallesPeliculaDto), "pelicula")]
+[JsonDerivedType(typeof(DetallesLibroDto), "libro")]
 public abstract record DetallesDto
 {
     public static DetallesDto? Desde(DetallesSnapshot? detalles) => detalles switch
@@ -49,6 +50,7 @@ public abstract record DetallesDto
             pelicula.Actores,
             pelicula.Paises,
             pelicula.DuracionMinutos),
+        DetallesLibro libro => new DetallesLibroDto(libro.Paginas),
         _ => throw new NotSupportedException($"Detalles sin DTO: {detalles.GetType().Name}")
     };
 
@@ -61,6 +63,12 @@ public sealed record DetallesPeliculaDto(
     [property: JsonPropertyName("duracionMinutos")] int? DuracionMinutos) : DetallesDto
 {
     public override DetallesSnapshot ADominio() => new DetallesPelicula(Actores ?? [], Paises ?? [], DuracionMinutos);
+}
+
+public sealed record DetallesLibroDto(
+    [property: JsonPropertyName("paginas")] int? Paginas) : DetallesDto
+{
+    public override DetallesSnapshot ADominio() => new DetallesLibro(Paginas);
 }
 
 public sealed class FuenteSnapshotJsonConverter : JsonConverter<FuenteSnapshot>

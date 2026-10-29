@@ -28,14 +28,20 @@
             <p class="anio">{{ anio }}</p>
           }
           @if (snapshot.detalles; as detalles) {
-            @if (detalles.actores.length > 0) {
-              <p class="anio"><strong>Reparto:</strong> {{ detalles.actores.join(', ') }}</p>
-            }
-            @if (detalles.paises.length > 0) {
-              <p class="anio"><strong>País:</strong> {{ paises(detalles.paises) }}</p>
-            }
-            @if (detalles.duracionMinutos; as duracion) {
-              <p class="anio"><strong>Duración:</strong> {{ duracion }} min</p>
+            @if (detalles.tipo === 'pelicula') {
+              @if (detalles.actores.length > 0) {
+                <p class="anio"><strong>Reparto:</strong> {{ detalles.actores.join(', ') }}</p>
+              }
+              @if (detalles.paises.length > 0) {
+                <p class="anio"><strong>País:</strong> {{ paises(detalles.paises) }}</p>
+              }
+              @if (detalles.duracionMinutos; as duracion) {
+                <p class="anio"><strong>Duración:</strong> {{ duracion }} min</p>
+              }
+            } @else if (detalles.tipo === 'libro') {
+              @if (detalles.paginas; as paginas) {
+                <p class="anio"><strong>Páginas:</strong> {{ paginas }}</p>
+              }
             }
           }
           @if (mostrarNotaExterna(ficha.tipo) && notaExterna(ficha); as nota) {

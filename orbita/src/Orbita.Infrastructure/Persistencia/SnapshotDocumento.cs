@@ -55,6 +55,7 @@ internal sealed record SnapshotDocumento(
 // El discriminador "tipo" identifica la forma de los detalles; añadir un Tipo = añadir un derivado.
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "tipo")]
 [JsonDerivedType(typeof(DetallesPeliculaDocumento), "pelicula")]
+[JsonDerivedType(typeof(DetallesLibroDocumento), "libro")]
 internal abstract record DetallesDocumento
 {
     public static DetallesDocumento? Desde(DetallesSnapshot? detalles) => detalles switch
@@ -64,6 +65,7 @@ internal abstract record DetallesDocumento
             pelicula.Actores,
             pelicula.Paises,
             pelicula.DuracionMinutos),
+        DetallesLibro libro => new DetallesLibroDocumento(libro.Paginas),
         _ => throw new NotSupportedException($"Detalles sin documento: {detalles.GetType().Name}")
     };
 
@@ -76,4 +78,10 @@ internal sealed record DetallesPeliculaDocumento(
     [property: JsonPropertyName("duracionMinutos")] int? DuracionMinutos) : DetallesDocumento
 {
     public override DetallesSnapshot ADominio() => new DetallesPelicula(Actores ?? [], Paises ?? [], DuracionMinutos);
+}
+
+internal sealed record DetallesLibroDocumento(
+    [property: JsonPropertyName("paginas")] int? Paginas) : DetallesDocumento
+{
+    public override DetallesSnapshot ADominio() => new DetallesLibro(Paginas);
 }

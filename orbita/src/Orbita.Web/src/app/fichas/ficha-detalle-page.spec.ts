@@ -86,6 +86,25 @@ describe('FichaDetallePage', () => {
     expect(texto).toContain('Duración: 155 min');
   });
 
+  it('muestra las páginas de los detalles de Libro', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(
+      ficha({
+        id: 'ficha-1',
+        titulo: 'El nombre del viento',
+        tipo: 'Libro',
+        snapshot: {
+          ...snapshot,
+          fuente: 'openlibrary',
+          detalles: { tipo: 'libro', paginas: 662 },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Páginas: 662');
+  });
+
   it('no muestra datos de detalles si el Snapshot no los trae', () => {
     const fixture = crear();
     http.expectOne('/api/fichas/ficha-1').flush(ficha({ id: 'ficha-1', titulo: 'Dune', snapshot }));

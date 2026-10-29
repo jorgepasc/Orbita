@@ -385,6 +385,9 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         apisExternas.Responder(
             "openlibrary.org/authors/OL23919A.json",
             """{ "name": "Patrick Rothfuss" }""");
+        apisExternas.Responder(
+            "openlibrary.org/search.json",
+            """{ "docs": [ { "key": "/works/OL45804W", "title": "El nombre del viento", "number_of_pages_median": 662 } ] }""");
 
         using var response = await client.GetAsync(
             "/api/enriquecimiento/snapshot?tipo=Libro&idExterno=%2Fworks%2FOL45804W");
@@ -402,6 +405,70 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
 
         Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/works/OL45804W.json"));
         Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/authors/OL23919A.json"));
+
+        var detalles = snapshot.Detalles!.Value;
+        Assert.Equal("libro", detalles.GetProperty("tipo").GetString());
+        Assert.Equal(662, detalles.GetProperty("paginas").GetInt32());
+        Assert.Contains(
+            "number_of_pages_median",
+            Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/search.json")));
+    }
+
+    [Fact]
+    public async Task Snapshot_for_libro_without_pages_in_the_search_has_no_detalles()
+    {
+        await AuthenticateAsync();
+        StubLibro(primeraPublicacion: "2007");
+        apisExternas.Responder(
+            "openlibrary.org/search.json",
+            """{ "docs": [ { "key": "/works/OL45804W", "title": "El nombre del viento" } ] }""");
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=C%C3%B3mic&idExterno=%2Fworks%2FOL45804W");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Equal(2007, snapshot.Anio);
+        Assert.Null(snapshot.Detalles);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_libro_survives_a_failed_search_when_the_year_is_known()
+    {
+        await AuthenticateAsync();
+        StubLibro(primeraPublicacion: "2007");
+        apisExternas.Responder("openlibrary.org/search.json", "{}", HttpStatusCode.BadGateway);
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Libro&idExterno=%2Fworks%2FOL45804W");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Equal(2007, snapshot.Anio);
+        Assert.Null(snapshot.Detalles);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_libro_fails_when_the_search_fails_and_the_year_is_unknown()
+    {
+        await AuthenticateAsync();
+        StubLibro(primeraPublicacion: null);
+        apisExternas.Responder("openlibrary.org/search.json", "{}", HttpStatusCode.BadGateway);
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Libro&idExterno=%2Fworks%2FOL45804W");
+
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+    }
+
+    private void StubLibro(string? primeraPublicacion)
+    {
+        var fecha = primeraPublicacion is null ? string.Empty : $"\"first_publish_date\": \"{primeraPublicacion}\",";
+        apisExternas.Responder(
+            "openlibrary.org/works/OL45804W.json",
+            $$"""{ "key": "/works/OL45804W", {{fecha}} "subjects": [] }""");
     }
 
     [Fact]

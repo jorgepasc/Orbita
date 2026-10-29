@@ -8,17 +8,21 @@ public sealed record DetallesPelicula(
     string[] Paises,
     int? DuracionMinutos) : DetallesSnapshot;
 
+public sealed record DetallesLibro(int? Paginas) : DetallesSnapshot;
+
 public static class DetallesSnapshots
 {
     public static bool EsCompatible(DetallesSnapshot detalles, TipoFicha tipo) => detalles switch
     {
         DetallesPelicula => tipo == TipoFicha.Pelicula,
+        DetallesLibro => tipo is TipoFicha.Libro or TipoFicha.Comic,
         _ => false
     };
 
     public static string Nombre(DetallesSnapshot detalles) => detalles switch
     {
         DetallesPelicula => "de película",
+        DetallesLibro => "de libro",
         _ => detalles.GetType().Name
     };
 }
