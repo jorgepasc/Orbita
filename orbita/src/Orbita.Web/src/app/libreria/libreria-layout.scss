@@ -50,6 +50,41 @@
   color: #20221f;
 }
 
+.nav-icono {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-icono svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.nav-icono::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  padding: 0.35rem 0.55rem;
+  background: #20221f;
+  color: #fffdf8;
+  font:
+    700 0.7rem/1.2 'IBM Plex Mono',
+    monospace;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease-in;
+}
+
+.nav-icono:hover::after,
+.nav-icono:focus-visible::after {
+  opacity: 1;
+}
+
 .contenido {
   width: min(76rem, 100%);
   margin: 0 auto;
@@ -93,6 +128,14 @@
   .nav-enlace.activa {
     border-top-color: #a14d32;
     border-bottom-color: transparent;
+  }
+
+  .nav-icono {
+    flex: 0 0 3rem;
+  }
+
+  .nav-icono::after {
+    display: none;
   }
 
   .contenido {
