@@ -97,7 +97,7 @@ describe('FichaDetallePage', () => {
           ...snapshot,
           detalles: {
             tipo: 'serie',
-            actores: ['Emma D\'Arcy', 'Matt Smith'],
+            actores: ["Emma D'Arcy", 'Matt Smith'],
             paises: ['US'],
             temporadas: 2,
             episodios: 18,

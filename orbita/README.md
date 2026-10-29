@@ -47,6 +47,8 @@ dotnet run --project src/Orbita.AppHost/Orbita.AppHost.AppHost
 
 Aspire levanta el backend, la aplicación Angular y PostgreSQL. Abre el dashboard de Aspire para acceder a los recursos. La UI también está disponible en `https://localhost:4200`.
 
+Si la base de datos local está vacía, la API la siembra al arrancar con seis Fichas de ejemplo con Snapshot (dos Películas, dos Libros y dos Juegos, ver `SemillaDesarrollo`). Solo ocurre con el AppHost, que define `SemillaDesarrollo=true`, y en entorno `Development`; producción y los tests no la activan.
+
 En Azure configura las mismas claves como valores de configuración de la API con los nombres de
 entorno `Authentication__Username`, `Authentication__Password` y `Authentication__SigningKey`
 (y opcionalmente Issuer, Audience y TokenLifetimeMinutes). Las claves de enriquecimiento viajan
