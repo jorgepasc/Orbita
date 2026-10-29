@@ -108,6 +108,37 @@ describe('EstanteriaPage', () => {
     expect(meses).toEqual(['marzo 2026', 'enero 2026']);
   });
 
+  it('ordena por Valoración en una lista sin meses y vuelve a agrupar por Fecha', () => {
+    const fixture = crear('pantalla');
+    http
+      .expectOne('/api/fichas')
+      .flush([
+        ficha({ id: 'marzo', titulo: 'Marzo', fecha: '2026-03-14', valoracion: 6 }),
+        ficha({ id: 'enero', titulo: 'Enero', fecha: '2026-01-05', valoracion: 9 }),
+        ficha({ id: 'sin', titulo: 'Sin nota', fecha: '2026-02-05' }),
+      ]);
+    fixture.detectChanges();
+
+    const botonOrden = (texto: string) =>
+      Array.from(
+        fixture.nativeElement.querySelectorAll(
+          '[aria-label="Ordenar por"] button',
+        ) as NodeListOf<HTMLButtonElement>,
+      ).find((boton) => boton.textContent?.trim() === texto);
+
+    botonOrden('Valoración')?.click();
+    fixture.detectChanges();
+
+    expect(titulos(fixture)).toEqual(['Enero', 'Marzo', 'Sin nota']);
+    expect(fixture.nativeElement.querySelectorAll('.mes-titulo').length).toBe(0);
+
+    botonOrden('Fecha')?.click();
+    fixture.detectChanges();
+
+    expect(titulos(fixture)).toEqual(['Marzo', 'Sin nota', 'Enero']);
+    expect(fixture.nativeElement.querySelectorAll('.mes-titulo').length).toBe(3);
+  });
+
   it('busca por título ignorando acentos', () => {
     const fixture = crear('pantalla');
     http

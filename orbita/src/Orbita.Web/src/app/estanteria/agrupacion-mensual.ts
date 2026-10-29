@@ -47,3 +47,19 @@ export function agruparPorMes(fichas: Ficha[]): GrupoMes[] {
 
   return grupos;
 }
+
+export function ordenarPorValoracion(fichas: Ficha[]): Ficha[] {
+  return [...fichas].sort((primera, segunda) => {
+    if (primera.valoracion !== segunda.valoracion) {
+      if (primera.valoracion === null) {
+        return 1;
+      }
+      if (segunda.valoracion === null) {
+        return -1;
+      }
+      return segunda.valoracion - primera.valoracion;
+    }
+    const porFecha = (segunda.fecha ?? '').localeCompare(primera.fecha ?? '');
+    return porFecha !== 0 ? porFecha : primera.titulo.localeCompare(segunda.titulo);
+  });
+}

@@ -28,10 +28,11 @@ Sustituir el dashboard plano por una librería organizada en tres Estanterías c
 9. **Listado** — todo en cliente con el `GET /api/fichas` actual:
    - Filtro de Tipo en estanterías dobles: "Todo | Película | Serie" y "Todo | Libro | Cómic".
    - Búsqueda por título dentro de la propia Estantería.
-   - Orden por Fecha descendente, agrupado por meses con cabecera `MMMM YYYY` ("marzo 2026"), meses descendentes y dentro de cada mes Fecha descendente.
-   - Sin selector de orden ni filtros extra.
-10. **Navegación responsive**: móvil (PWA) con tab bar inferior fija de las 3 Estanterías; escritorio con barra superior horizontal y contenido de ancho máximo. Grid de 2–3 columnas en móvil, 5–6 en escritorio.
-11. **El dashboard muere**: la vista actual de `''` desaparece con su widget de estado del backend/postgres (scaffolding de desarrollo, no producto). Cada Estantería tiene su empty state.
+   - Orden por defecto por Fecha descendente, agrupado por meses con cabecera `MMMM YYYY` ("marzo 2026"), meses descendentes y dentro de cada mes Fecha descendente.
+   - Selector de orden "Fecha | Valoración": Valoración pinta una lista plana sin meses, de mayor a menor nota, con las Fichas sin Valoración al final (desempate por Fecha descendente y título). Sin filtros extra.
+10. **Cabecera ilustrada**: cada Estantería pinta junto a su título una ilustración de línea propia (claqueta, libro con bocadillo, mando) con una animación sutil que respeta `prefers-reduced-motion`.
+11. **Navegación responsive**: móvil (PWA) con tab bar inferior fija de las 3 Estanterías; escritorio con barra superior horizontal y contenido de ancho máximo. Grid de 2–3 columnas en móvil, 5–6 en escritorio.
+12. **El dashboard muere**: la vista actual de `''` desaparece con su widget de estado del backend/postgres (scaffolding de desarrollo, no producto). Cada Estantería tiene su empty state.
 
 ## Cambios en el modelo y la API
 
@@ -54,7 +55,8 @@ Sustituir el dashboard plano por una librería organizada en tres Estanterías c
 ## Fuera de alcance de esta iteración
 
 - Backlog/pendientes (reversible a futuro: basta con relajar la Fecha).
-- Reordenación configurable y filtros extra (completadas vs. abandonadas).
+- Filtros extra (completadas vs. abandonadas).
+- Vista tabla tipo Excel con celdas editables (sin portada), alternativa a las tarjetas.
 - Búsqueda global multi-Tipo.
 - Campos por Tipo adicionales (formato de lectura, tomos, temporadas) — pendiente revisar el Excel de origen.
 - Importación del Excel histórico.

@@ -1,14 +1,18 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FichaApi, notaExternaConSufijo, type Ficha, type TipoFicha } from '../fichas/ficha-api';
 import { FichaFormPanel } from '../fichas/ficha-form-panel';
-import { agruparPorMes, normalizarTexto } from './agrupacion-mensual';
+import { agruparPorMes, normalizarTexto, ordenarPorValoracion } from './agrupacion-mensual';
+import { EstanteriaIlustracion } from './estanteria-ilustracion';
 import { getEstanteria } from './estanterias';
+
+type Orden = 'fecha' | 'valoracion';
 
 @Component({
   selector: 'app-estanteria-page',
-  imports: [FormsModule, RouterLink, FichaFormPanel],
+  imports: [FormsModule, NgTemplateOutlet, RouterLink, FichaFormPanel, EstanteriaIlustracion],
   templateUrl: './estanteria-page.html',
   styleUrl: './estanteria-page.scss',
 })
@@ -23,14 +27,15 @@ export class EstanteriaPage {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly filtroTipo = signal<TipoFicha | null>(null);
   protected readonly busqueda = signal('');
+  protected readonly orden = signal<Orden>('fecha');
   protected readonly mostrandoFormulario = signal(false);
 
-  protected readonly grupos = computed(() => {
+  private readonly visibles = computed(() => {
     const tipos = this.estanteria.tipos;
     const filtro = this.filtroTipo();
     const consulta = normalizarTexto(this.busqueda());
 
-    const visibles = this.fichas().filter((ficha) => {
+    return this.fichas().filter((ficha) => {
       if (!tipos.includes(ficha.tipo)) {
         return false;
       }
@@ -39,9 +44,10 @@ export class EstanteriaPage {
       }
       return !consulta || normalizarTexto(ficha.titulo).includes(consulta);
     });
-
-    return agruparPorMes(visibles);
   });
+
+  protected readonly grupos = computed(() => agruparPorMes(this.visibles()));
+  protected readonly ranking = computed(() => ordenarPorValoracion(this.visibles()));
 
   constructor() {
     this.api.list().subscribe({
