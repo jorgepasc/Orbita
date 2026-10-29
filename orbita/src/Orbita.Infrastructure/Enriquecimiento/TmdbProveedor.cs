@@ -46,8 +46,7 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
         CancellationToken cancellationToken)
     {
         var configuracion = Configuracion(tipo);
-        var anexarCreditos = configuracion.EsPelicula ? "&append_to_response=credits" : string.Empty;
-        var url = $"{BaseUrl}/{configuracion.Ruta}/{Uri.EscapeDataString(idExterno)}?language=es-ES{anexarCreditos}";
+        var url = $"{BaseUrl}/{configuracion.Ruta}/{Uri.EscapeDataString(idExterno)}?language=es-ES&append_to_response=credits";
         var detalle = await GetJsonAsync<DetalleTmdb>(url, cancellationToken);
 
         return new Snapshot(
@@ -60,13 +59,32 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
                 : detalle.CreatedBy?.FirstOrDefault()?.Name,
             detalle.VoteAverage,
             [.. (detalle.Genres ?? []).Select(genero => genero.Name)],
-            configuracion.EsPelicula ? DetallesDePelicula(detalle) : null);
+            configuracion.EsPelicula ? DetallesDePelicula(detalle) : DetallesDeSerie(detalle));
     }
 
     private static DetallesPelicula DetallesDePelicula(DetalleTmdb detalle) => new(
-        [.. (detalle.Credits?.Cast ?? []).Take(ActoresPrincipales).Select(actor => actor.Name)],
-        [.. (detalle.ProductionCountries ?? []).Select(pais => pais.Iso31661)],
+        Actores(detalle),
+        Paises(detalle),
         detalle.Runtime is > 0 ? detalle.Runtime : null);
+
+    // TMDB devuelve 0 temporadas o episodios cuando no tiene dato; se trata como ausente.
+    private static DetallesSerie? DetallesDeSerie(DetalleTmdb detalle)
+    {
+        var actores = Actores(detalle);
+        var paises = Paises(detalle);
+        var temporadas = detalle.NumberOfSeasons is > 0 ? detalle.NumberOfSeasons : null;
+        var episodios = detalle.NumberOfEpisodes is > 0 ? detalle.NumberOfEpisodes : null;
+
+        return actores.Length == 0 && paises.Length == 0 && temporadas is null && episodios is null
+            ? null
+            : new DetallesSerie(actores, paises, temporadas, episodios);
+    }
+
+    private static string[] Actores(DetalleTmdb detalle) =>
+        [.. (detalle.Credits?.Cast ?? []).Take(ActoresPrincipales).Select(actor => actor.Name)];
+
+    private static string[] Paises(DetalleTmdb detalle) =>
+        [.. (detalle.ProductionCountries ?? []).Select(pais => pais.Iso31661)];
 
     private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
     {
@@ -113,6 +131,8 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
         [property: JsonPropertyName("created_by")] List<CreadorTmdb>? CreatedBy,
         CreditosTmdb? Credits,
         int? Runtime,
+        [property: JsonPropertyName("number_of_seasons")] int? NumberOfSeasons,
+        [property: JsonPropertyName("number_of_episodes")] int? NumberOfEpisodes,
         [property: JsonPropertyName("production_countries")] List<PaisTmdb>? ProductionCountries);
 
     private sealed record GeneroTmdb(string Name);

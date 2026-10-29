@@ -86,6 +86,33 @@ describe('FichaDetallePage', () => {
     expect(texto).toContain('Duración: 155 min');
   });
 
+  it('muestra reparto, países, temporadas y episodios de los detalles de Serie', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(
+      ficha({
+        id: 'ficha-1',
+        titulo: 'La casa del dragón',
+        tipo: 'Serie',
+        snapshot: {
+          ...snapshot,
+          detalles: {
+            tipo: 'serie',
+            actores: ['Emma D\'Arcy', 'Matt Smith'],
+            paises: ['US'],
+            temporadas: 2,
+            episodios: 18,
+          },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent;
+    expect(texto).toContain("Reparto: Emma D'Arcy, Matt Smith");
+    expect(texto).toContain('País: Estados Unidos');
+    expect(texto).toContain('Temporadas: 2 · 18 episodios');
+  });
+
   it('muestra las páginas de los detalles de Libro', () => {
     const fixture = crear();
     http.expectOne('/api/fichas/ficha-1').flush(

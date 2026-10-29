@@ -55,6 +55,7 @@ internal sealed record SnapshotDocumento(
 // El discriminador "tipo" identifica la forma de los detalles; añadir un Tipo = añadir un derivado.
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "tipo")]
 [JsonDerivedType(typeof(DetallesPeliculaDocumento), "pelicula")]
+[JsonDerivedType(typeof(DetallesSerieDocumento), "serie")]
 [JsonDerivedType(typeof(DetallesLibroDocumento), "libro")]
 [JsonDerivedType(typeof(DetallesJuegoDocumento), "juego")]
 internal abstract record DetallesDocumento
@@ -66,6 +67,11 @@ internal abstract record DetallesDocumento
             pelicula.Actores,
             pelicula.Paises,
             pelicula.DuracionMinutos),
+        DetallesSerie serie => new DetallesSerieDocumento(
+            serie.Actores,
+            serie.Paises,
+            serie.Temporadas,
+            serie.Episodios),
         DetallesLibro libro => new DetallesLibroDocumento(libro.Paginas),
         DetallesJuego juego => new DetallesJuegoDocumento(juego.Plataformas, juego.HorasMedias),
         _ => throw new NotSupportedException($"Detalles sin documento: {detalles.GetType().Name}")
@@ -93,4 +99,14 @@ internal sealed record DetallesJuegoDocumento(
     [property: JsonPropertyName("horasMedias")] int? HorasMedias) : DetallesDocumento
 {
     public override DetallesSnapshot ADominio() => new DetallesJuego(Plataformas ?? [], HorasMedias);
+}
+
+internal sealed record DetallesSerieDocumento(
+    [property: JsonPropertyName("actores")] string[]? Actores,
+    [property: JsonPropertyName("paises")] string[]? Paises,
+    [property: JsonPropertyName("temporadas")] int? Temporadas,
+    [property: JsonPropertyName("episodios")] int? Episodios) : DetallesDocumento
+{
+    public override DetallesSnapshot ADominio() =>
+        new DetallesSerie(Actores ?? [], Paises ?? [], Temporadas, Episodios);
 }

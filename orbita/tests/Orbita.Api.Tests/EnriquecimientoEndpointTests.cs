@@ -305,7 +305,18 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
               ],
               "created_by": [
                 { "id": 19303, "name": "Ryan Condal" }
-              ]
+              ],
+              "number_of_seasons": 2,
+              "number_of_episodes": 18,
+              "production_countries": [
+                { "iso_3166_1": "US", "name": "United States of America" }
+              ],
+              "credits": {
+                "cast": [
+                  { "name": "Emma D'Arcy" },
+                  { "name": "Matt Smith" }
+                ]
+              }
             }
             """);
 
@@ -322,7 +333,32 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         Assert.Equal("Ryan Condal", snapshot.Autoria);
         Assert.Equal(["Sci-Fi & Fantasy"], snapshot.Generos);
 
-        Assert.Single(apisExternas.SolicitudesQueContienen("/3/tv/94997"));
+        var detalles = snapshot.Detalles!.Value;
+        Assert.Equal("serie", detalles.GetProperty("tipo").GetString());
+        Assert.Equal(["Emma D'Arcy", "Matt Smith"], detalles.GetProperty("actores").Deserialize<string[]>()!);
+        Assert.Equal(["US"], detalles.GetProperty("paises").Deserialize<string[]>()!);
+        Assert.Equal(2, detalles.GetProperty("temporadas").GetInt32());
+        Assert.Equal(18, detalles.GetProperty("episodios").GetInt32());
+
+        var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("/3/tv/94997"));
+        Assert.Contains("append_to_response=credits", solicitud);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_serie_without_extra_data_has_no_detalles()
+    {
+        await AuthenticateAsync();
+        apisExternas.Responder(
+            "api.themoviedb.org/3/tv/1",
+            """{ "id": 1, "name": "Obscura", "number_of_seasons": 0, "number_of_episodes": 0 }""");
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Serie&idExterno=1");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Null(snapshot.Detalles);
     }
 
     [Fact]
