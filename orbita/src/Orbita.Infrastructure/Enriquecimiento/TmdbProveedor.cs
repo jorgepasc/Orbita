@@ -18,6 +18,7 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
     private const string BaseUrl = "https://api.themoviedb.org/3";
     private const string TamanoBusqueda = "w154";
     private const string TamanoDetalle = "w500";
+    private const int ActoresPrincipales = 4;
 
     public FuenteSnapshot Fuente => FuenteSnapshot.Tmdb;
 
@@ -58,8 +59,14 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
                 ? detalle.Credits?.Crew?.FirstOrDefault(miembro => miembro.Job == "Director")?.Name
                 : detalle.CreatedBy?.FirstOrDefault()?.Name,
             detalle.VoteAverage,
-            [.. (detalle.Genres ?? []).Select(genero => genero.Name)]);
+            [.. (detalle.Genres ?? []).Select(genero => genero.Name)],
+            configuracion.EsPelicula ? DetallesDePelicula(detalle) : null);
     }
+
+    private static DetallesPelicula DetallesDePelicula(DetalleTmdb detalle) => new(
+        [.. (detalle.Credits?.Cast ?? []).Take(ActoresPrincipales).Select(actor => actor.Name)],
+        [.. (detalle.ProductionCountries ?? []).Select(pais => pais.Iso31661)],
+        detalle.Runtime is > 0 ? detalle.Runtime : null);
 
     private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken)
     {
@@ -104,15 +111,21 @@ public sealed class TmdbProveedor(HttpClient http, IOptions<TmdbOptions> options
         [property: JsonPropertyName("vote_average")] decimal? VoteAverage,
         List<GeneroTmdb>? Genres,
         [property: JsonPropertyName("created_by")] List<CreadorTmdb>? CreatedBy,
-        CreditosTmdb? Credits);
+        CreditosTmdb? Credits,
+        int? Runtime,
+        [property: JsonPropertyName("production_countries")] List<PaisTmdb>? ProductionCountries);
 
     private sealed record GeneroTmdb(string Name);
 
     private sealed record CreadorTmdb(string Name);
 
-    private sealed record CreditosTmdb(List<MiembroCrewTmdb>? Crew);
+    private sealed record CreditosTmdb(List<MiembroCrewTmdb>? Crew, List<ActorTmdb>? Cast);
 
     private sealed record MiembroCrewTmdb(string Name, string Job);
+
+    private sealed record ActorTmdb(string Name);
+
+    private sealed record PaisTmdb([property: JsonPropertyName("iso_3166_1")] string Iso31661);
 
     private sealed record ConfiguracionTipoTmdb(string Ruta, bool EsPelicula);
 }

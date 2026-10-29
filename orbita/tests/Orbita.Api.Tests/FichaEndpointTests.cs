@@ -216,6 +216,84 @@ public sealed class FichaEndpointTests : IClassFixture<OrbitaApiFactory>
     }
 
     [Fact]
+    public async Task Create_with_pelicula_detalles_persists_and_returns_them()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Dune",
+            tipo = "Película",
+            fecha = "2025-01-11",
+            terminado = false,
+            snapshot = new
+            {
+                fuente = "tmdb",
+                idExterno = "438631",
+                portada = (string?)null,
+                anio = 2021,
+                autoria = "Denis Villeneuve",
+                notaExterna = 7.8m,
+                generos = new[] { "Ciencia ficción" },
+                detalles = new
+                {
+                    tipo = "pelicula",
+                    actores = new[] { "Timothée Chalamet", "Zendaya" },
+                    paises = new[] { "US", "CA" },
+                    duracionMinutos = 155
+                }
+            }
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var creada = await response.Content.ReadFromJsonAsync<FichaResponse>();
+        Assert.NotNull(creada);
+
+        var leida = await client.GetFromJsonAsync<FichaResponse>($"/api/fichas/{creada.Id}");
+        var detalles = leida?.Snapshot?.Detalles;
+        Assert.NotNull(detalles);
+        Assert.Equal("pelicula", detalles.Value.GetProperty("tipo").GetString());
+        Assert.Equal(["Timothée Chalamet", "Zendaya"], detalles.Value.GetProperty("actores").Deserialize<string[]>()!);
+        Assert.Equal(["US", "CA"], detalles.Value.GetProperty("paises").Deserialize<string[]>()!);
+        Assert.Equal(155, detalles.Value.GetProperty("duracionMinutos").GetInt32());
+    }
+
+    [Fact]
+    public async Task Create_rejects_detalles_that_do_not_belong_to_the_tipo()
+    {
+        await AuthenticateAsync();
+
+        using var response = await client.PostAsJsonAsync("/api/fichas", new
+        {
+            titulo = "Libro con detalles de película",
+            tipo = "Libro",
+            fecha = "2025-02-04",
+            terminado = false,
+            snapshot = new
+            {
+                fuente = "openlibrary",
+                idExterno = "/works/OL45804W",
+                portada = (string?)null,
+                anio = 2007,
+                autoria = (string?)null,
+                notaExterna = (decimal?)null,
+                generos = Array.Empty<string>(),
+                detalles = new
+                {
+                    tipo = "pelicula",
+                    actores = Array.Empty<string>(),
+                    paises = Array.Empty<string>(),
+                    duracionMinutos = (int?)null
+                }
+            }
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var problem = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.Equal("snapshot.detalles", problem!.RootElement.GetProperty("errors").EnumerateObject().First().Name);
+    }
+
+    [Fact]
     public async Task Create_rejects_a_snapshot_from_a_source_incompatible_with_the_tipo()
     {
         await AuthenticateAsync();
@@ -573,7 +651,8 @@ internal sealed record SnapshotResponse(
     int? Anio,
     string? Autoria,
     decimal? NotaExterna,
-    string[] Generos);
+    string[] Generos,
+    JsonElement? Detalles = null);
 
 internal sealed record LoginRequest(string Username, string Password);
 

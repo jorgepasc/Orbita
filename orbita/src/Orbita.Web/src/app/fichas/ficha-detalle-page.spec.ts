@@ -61,6 +61,41 @@ describe('FichaDetallePage', () => {
     expect(autoria.textContent).toContain('Denis Villeneuve');
   });
 
+  it('muestra reparto, países y duración de los detalles de Película', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(
+      ficha({
+        id: 'ficha-1',
+        titulo: 'Dune',
+        snapshot: {
+          ...snapshot,
+          detalles: {
+            tipo: 'pelicula',
+            actores: ['Timothée Chalamet', 'Zendaya'],
+            paises: ['US', 'CA'],
+            duracionMinutos: 155,
+          },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent;
+    expect(texto).toContain('Reparto: Timothée Chalamet, Zendaya');
+    expect(texto).toContain('País: Estados Unidos, Canadá');
+    expect(texto).toContain('Duración: 155 min');
+  });
+
+  it('no muestra datos de detalles si el Snapshot no los trae', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(ficha({ id: 'ficha-1', titulo: 'Dune', snapshot }));
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent;
+    expect(texto).not.toContain('Reparto:');
+    expect(texto).not.toContain('Duración:');
+  });
+
   it('etiqueta la autoría como Estudio en Juego', () => {
     const fixture = crear();
     http.expectOne('/api/fichas/ficha-1').flush(

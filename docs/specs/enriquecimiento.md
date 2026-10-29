@@ -27,7 +27,7 @@ Libro y Cómic consultan la misma API: el Tipo lo declara el usuario al crear, n
 
 ## Snapshot
 
-Shape única para todos los Tipos (columna `Ficha.Snapshot`, jsonb, ya existe en el modelo y la migración):
+Núcleo común para todos los Tipos más un `detalles` opcional propio de cada Tipo (ADR 0004). Columna `Ficha.Snapshot`, jsonb, ya existe en el modelo y la migración:
 
 ```json
 {
@@ -37,9 +37,17 @@ Shape única para todos los Tipos (columna `Ficha.Snapshot`, jsonb, ya existe en
   "anio": 2021,
   "autoria": "Denis Villeneuve",
   "notaExterna": 7.8,
-  "generos": ["Ciencia ficción", "Aventura"]
+  "generos": ["Ciencia ficción", "Aventura"],
+  "detalles": {
+    "tipo": "pelicula",
+    "actores": ["Timothée Chalamet", "Zendaya"],
+    "paises": ["US", "CA"],
+    "duracionMinutos": 155
+  }
 }
 ```
+
+- `detalles`: se omite si el proveedor no aporta nada para ese Tipo. Hoy solo existe `pelicula` (actores principales, máximo 4; países en ISO 3166-1; duración). Libro/Cómic (páginas), Juego (plataformas, horas medias) y Serie (actores, países, temporadas, episodios) llegarán como derivados nuevos. El dominio rechaza unos `detalles` que no correspondan al Tipo.
 
 - `autoria`: director (Película), creador (Serie, `created_by[0]`), estudio (Juego, `developers[0]`), autor (Libro/Cómic). El significado lo da el Tipo de la Ficha.
 - `notaExterna`: nula para Libro/Cómic y para juegos sin nota Metacritic.

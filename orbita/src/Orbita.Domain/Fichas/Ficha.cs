@@ -118,6 +118,13 @@ public sealed class Ficha
                         "snapshot.fuente",
                         $"La fuente '{FuentesSnapshot.Nombre(snapshot.Fuente)}' no es válida para el Tipo {TiposFicha.Nombre(tipo)}.");
                 }
+
+                if (snapshot.Detalles is { } detalles && !DetallesSnapshots.EsCompatible(detalles, tipo))
+                {
+                    errores.Agregar(
+                        "snapshot.detalles",
+                        $"Los detalles {DetallesSnapshots.Nombre(detalles)} no son válidos para el Tipo {TiposFicha.Nombre(tipo)}.");
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(datos.Plataforma) && tipo != TipoFicha.Juego)

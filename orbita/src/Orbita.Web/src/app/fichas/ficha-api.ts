@@ -16,7 +16,18 @@ export interface Snapshot {
   autoria: string | null;
   notaExterna: number | null;
   generos: string[];
+  detalles?: DetallesSnapshot | null;
 }
+
+// Detalles propios de cada Tipo, discriminados por `tipo` (ADR 0004).
+export interface DetallesPelicula {
+  tipo: 'pelicula';
+  actores: string[];
+  paises: string[];
+  duracionMinutos: number | null;
+}
+
+export type DetallesSnapshot = DetallesPelicula;
 
 const TIPOS_POR_FUENTE: Record<FuenteSnapshot, readonly TipoFicha[]> = {
   tmdb: ['Película', 'Serie'],

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Orbita.Api.Tests;
 
@@ -238,7 +239,19 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
                 { "id": 878, "name": "Ciencia ficción" },
                 { "id": 12, "name": "Aventura" }
               ],
+              "runtime": 155,
+              "production_countries": [
+                { "iso_3166_1": "US", "name": "United States of America" },
+                { "iso_3166_1": "CA", "name": "Canada" }
+              ],
               "credits": {
+                "cast": [
+                  { "name": "Timothée Chalamet" },
+                  { "name": "Rebecca Ferguson" },
+                  { "name": "Zendaya" },
+                  { "name": "Oscar Isaac" },
+                  { "name": "Josh Brolin" }
+                ],
                 "crew": [
                   { "name": "Denis Villeneuve", "job": "Director" },
                   { "name": "Jon Spaihts", "job": "Screenplay" }
@@ -260,6 +273,14 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         Assert.Equal("Denis Villeneuve", snapshot.Autoria);
         Assert.Equal(7.8m, snapshot.NotaExterna);
         Assert.Equal(["Ciencia ficción", "Aventura"], snapshot.Generos);
+
+        var detalles = snapshot.Detalles!.Value;
+        Assert.Equal("pelicula", detalles.GetProperty("tipo").GetString());
+        Assert.Equal(
+            ["Timothée Chalamet", "Rebecca Ferguson", "Zendaya", "Oscar Isaac"],
+            detalles.GetProperty("actores").Deserialize<string[]>()!);
+        Assert.Equal(["US", "CA"], detalles.GetProperty("paises").Deserialize<string[]>()!);
+        Assert.Equal(155, detalles.GetProperty("duracionMinutos").GetInt32());
 
         var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("/3/movie/438631"));
         Assert.Contains("language=es-ES", solicitud);
