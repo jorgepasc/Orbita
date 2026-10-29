@@ -46,4 +46,13 @@ public static class DependencyInjection
         await using var scope = services.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<FichaDbContext>().Database.MigrateAsync();
     }
+
+    // Solo para la base de datos local: no hace nada si ya hay Fichas.
+    public static async Task<int> SembrarDatosDesarrolloAsync(this IServiceProvider services)
+    {
+        await using var scope = services.CreateAsyncScope();
+        return await SemillaDesarrollo.SembrarAsync(
+            scope.ServiceProvider.GetRequiredService<FichaDbContext>(),
+            CancellationToken.None);
+    }
 }

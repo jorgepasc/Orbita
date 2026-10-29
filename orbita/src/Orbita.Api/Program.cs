@@ -23,6 +23,12 @@ var app = builder.Build();
 if (!string.IsNullOrWhiteSpace(databaseConnectionString))
 {
     await app.Services.AplicarMigracionesAsync();
+
+    // La semilla la activa el AppHost de Aspire; producción nunca define SemillaDesarrollo.
+    if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("SemillaDesarrollo"))
+    {
+        await app.Services.SembrarDatosDesarrolloAsync();
+    }
 }
 
 app.MapDefaultEndpoints();

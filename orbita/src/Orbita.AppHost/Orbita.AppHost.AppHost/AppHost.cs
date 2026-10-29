@@ -7,7 +7,8 @@ var database = builder
 var api = builder
     .AddProject<Projects.Orbita_Api>("api")
     .WithReference(database)
-    .WaitFor(database);
+    .WaitFor(database)
+    .WithEnvironment("SemillaDesarrollo", "true");
 
 foreach (var (configurationKey, environmentKey) in new[]
 {
