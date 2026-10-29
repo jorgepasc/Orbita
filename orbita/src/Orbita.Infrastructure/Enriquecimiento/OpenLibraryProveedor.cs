@@ -53,28 +53,41 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
             autoria = autor.Name;
         }
 
+        // El detalle de la obra casi nunca trae first_publish_date ni las páginas; la búsqueda sí expone
+        // first_publish_year y number_of_pages_median. Si ya hay año, un fallo de la búsqueda solo cuesta las páginas.
+        var anio = Anio(obra.FirstPublishDate);
+        DocumentoOpenLibrary? datosBusqueda = null;
+        try
+        {
+            datosBusqueda = await BuscarObraAsync(idExterno, cancellationToken);
+        }
+        catch (ApiExternaException) when (anio is not null)
+        {
+        }
+
         return new Snapshot(
             Fuente,
             string.IsNullOrWhiteSpace(obra.Key) ? idExterno : obra.Key,
             obra.Covers?.FirstOrDefault(portada => portada > 0) is { } portada
                 ? $"https://covers.openlibrary.org/b/id/{portada}-L.jpg"
                 : null,
-            Anio(obra.FirstPublishDate) ?? await AnioDePrimeraPublicacionAsync(idExterno, cancellationToken),
+            anio ?? datosBusqueda?.FirstPublishYear,
             autoria,
             null,
-            [.. (obra.Subjects ?? []).Take(5)]);
+            [.. (obra.Subjects ?? []).Take(5)],
+            datosBusqueda?.NumberOfPagesMedian is > 0 and var paginas ? new DetallesLibro(paginas) : null);
     }
 
-    // El detalle de la obra casi nunca trae first_publish_date; la búsqueda sí expone first_publish_year.
-    private async Task<int?> AnioDePrimeraPublicacionAsync(string clave, CancellationToken cancellationToken)
+    private async Task<DocumentoOpenLibrary?> BuscarObraAsync(string clave, CancellationToken cancellationToken)
     {
         UrlDeClave(clave, "/works/");
 
         var busqueda = await GetJsonAsync<BusquedaOpenLibrary>(
-            $"{BaseUrl}/search.json?q={Uri.EscapeDataString($"key:{clave}")}&fields=key,title,first_publish_year&limit=1",
+            $"{BaseUrl}/search.json?q={Uri.EscapeDataString($"key:{clave}")}" +
+            "&fields=key,title,first_publish_year,number_of_pages_median&limit=1",
             cancellationToken);
 
-        return busqueda.Docs.FirstOrDefault()?.FirstPublishYear;
+        return busqueda.Docs.FirstOrDefault();
     }
 
     private static string UrlDeClave(string clave, string prefijo)
@@ -114,6 +127,7 @@ public sealed class OpenLibraryProveedor(HttpClient http) : IProveedorEnriquecim
         string Title,
         int? CoverI,
         int? FirstPublishYear,
+        int? NumberOfPagesMedian,
         string[]? AuthorName,
         string[]? Subject);
 

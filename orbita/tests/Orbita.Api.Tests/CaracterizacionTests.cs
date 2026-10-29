@@ -92,6 +92,44 @@ public sealed class CaracterizacionTests : IClassFixture<OrbitaApiFactory>
         Assert.Empty(leido.Generos);
     }
 
+    [Fact]
+    public void Snapshot_detalles_are_stored_with_a_discriminator_and_old_documents_read_back_without_them()
+    {
+        using var scope = factory.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<FichaDbContext>();
+        var converter = database.Model
+            .FindEntityType(typeof(Ficha))!
+            .FindProperty(nameof(Ficha.Snapshot))!
+            .GetValueConverter()!;
+
+        var snapshot = new Snapshot(
+            FuenteSnapshot.Tmdb,
+            "438631",
+            null,
+            2021,
+            "Denis Villeneuve",
+            7.8m,
+            ["Aventura"],
+            new DetallesPelicula(["Zendaya"], ["US"], 155));
+
+        var json = (string)converter.ConvertToProvider(snapshot)!;
+
+        Assert.EndsWith(
+            "\"generos\":[\"Aventura\"],\"detalles\":{\"tipo\":\"pelicula\",\"actores\":[\"Zendaya\"]," +
+            "\"paises\":[\"US\"],\"duracionMinutos\":155}}",
+            json);
+
+        var ida = (Snapshot)converter.ConvertFromProvider(json)!;
+        Assert.Equal(["Zendaya"], ((DetallesPelicula)ida.Detalles!).Actores);
+        Assert.Equal(["US"], ((DetallesPelicula)ida.Detalles!).Paises);
+        Assert.Equal(155, ((DetallesPelicula)ida.Detalles!).DuracionMinutos);
+
+        var antiguo = (Snapshot)converter.ConvertFromProvider(
+            "{\"fuente\":\"tmdb\",\"idExterno\":\"1\",\"portada\":null,\"anio\":null," +
+            "\"autoria\":null,\"notaExterna\":null,\"generos\":[]}")!;
+        Assert.Null(antiguo.Detalles);
+    }
+
     private async Task AuthenticateAsync()
     {
         using var loginResponse = await client.PostAsJsonAsync(

@@ -1,0 +1,42 @@
+namespace Orbita.Domain.Fichas;
+
+// Datos de enriquecimiento propios de cada Tipo; el Snapshot lleva como mucho uno (ADR 0004).
+public abstract record DetallesSnapshot;
+
+public sealed record DetallesPelicula(
+    string[] Actores,
+    string[] Paises,
+    int? DuracionMinutos) : DetallesSnapshot;
+
+public sealed record DetallesSerie(
+    string[] Actores,
+    string[] Paises,
+    int? Temporadas,
+    int? Episodios) : DetallesSnapshot;
+
+public sealed record DetallesLibro(int? Paginas) : DetallesSnapshot;
+
+public sealed record DetallesJuego(
+    string[] Plataformas,
+    int? HorasMedias) : DetallesSnapshot;
+
+public static class DetallesSnapshots
+{
+    public static bool EsCompatible(DetallesSnapshot detalles, TipoFicha tipo) => detalles switch
+    {
+        DetallesPelicula => tipo == TipoFicha.Pelicula,
+        DetallesSerie => tipo == TipoFicha.Serie,
+        DetallesLibro => tipo is TipoFicha.Libro or TipoFicha.Comic,
+        DetallesJuego => tipo == TipoFicha.Juego,
+        _ => false
+    };
+
+    public static string Nombre(DetallesSnapshot detalles) => detalles switch
+    {
+        DetallesPelicula => "de película",
+        DetallesSerie => "de serie",
+        DetallesLibro => "de libro",
+        DetallesJuego => "de juego",
+        _ => detalles.GetType().Name
+    };
+}

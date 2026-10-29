@@ -58,7 +58,17 @@ public sealed class RawgProveedor(HttpClient http, IOptions<RawgOptions> options
             Anio.DesdeFecha(detalle.Released),
             detalle.Developers?.FirstOrDefault()?.Name,
             detalle.Metacritic,
-            [.. (detalle.Genres ?? []).Select(genero => genero.Name)]);
+            [.. (detalle.Genres ?? []).Select(genero => genero.Name)],
+            DetallesDeJuego(detalle));
+    }
+
+    // RAWG devuelve playtime = 0 cuando no tiene dato; se trata como ausente.
+    private static DetallesJuego? DetallesDeJuego(DetalleRawg detalle)
+    {
+        string[] plataformas = [.. (detalle.Platforms ?? []).Select(entrada => entrada.Platform.Name)];
+        var horas = detalle.Playtime is > 0 ? detalle.Playtime : null;
+
+        return plataformas.Length == 0 && horas is null ? null : new DetallesJuego(plataformas, horas);
     }
 
     private Task<T> GetJsonAsync<T>(string url, CancellationToken cancellationToken) =>
@@ -85,7 +95,13 @@ public sealed class RawgProveedor(HttpClient http, IOptions<RawgOptions> options
         string? Released,
         int? Metacritic,
         List<DesarrolladorRawg>? Developers,
-        List<GeneroRawg>? Genres);
+        List<GeneroRawg>? Genres,
+        List<EntradaPlataformaRawg>? Platforms,
+        int? Playtime);
+
+    private sealed record EntradaPlataformaRawg(PlataformaRawg Platform);
+
+    private sealed record PlataformaRawg(string Name);
 
     private sealed record DesarrolladorRawg(string Name);
 

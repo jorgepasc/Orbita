@@ -53,4 +53,5 @@ public sealed record Snapshot(
     int? Anio,
     string? Autoria,
     decimal? NotaExterna,
-    string[] Generos);
+    string[] Generos,
+    DetallesSnapshot? Detalles = null);

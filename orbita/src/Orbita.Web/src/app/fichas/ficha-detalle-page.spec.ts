@@ -61,6 +61,108 @@ describe('FichaDetallePage', () => {
     expect(autoria.textContent).toContain('Denis Villeneuve');
   });
 
+  it('muestra reparto, países y duración de los detalles de Película', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(
+      ficha({
+        id: 'ficha-1',
+        titulo: 'Dune',
+        snapshot: {
+          ...snapshot,
+          detalles: {
+            tipo: 'pelicula',
+            actores: ['Timothée Chalamet', 'Zendaya'],
+            paises: ['US', 'CA'],
+            duracionMinutos: 155,
+          },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent;
+    expect(texto).toContain('Reparto: Timothée Chalamet, Zendaya');
+    expect(texto).toContain('País: Estados Unidos, Canadá');
+    expect(texto).toContain('Duración: 155 min');
+  });
+
+  it('muestra reparto, países, temporadas y episodios de los detalles de Serie', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(
+      ficha({
+        id: 'ficha-1',
+        titulo: 'La casa del dragón',
+        tipo: 'Serie',
+        snapshot: {
+          ...snapshot,
+          detalles: {
+            tipo: 'serie',
+            actores: ['Emma D\'Arcy', 'Matt Smith'],
+            paises: ['US'],
+            temporadas: 2,
+            episodios: 18,
+          },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent;
+    expect(texto).toContain("Reparto: Emma D'Arcy, Matt Smith");
+    expect(texto).toContain('País: Estados Unidos');
+    expect(texto).toContain('Temporadas: 2 · 18 episodios');
+  });
+
+  it('muestra las páginas de los detalles de Libro', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(
+      ficha({
+        id: 'ficha-1',
+        titulo: 'El nombre del viento',
+        tipo: 'Libro',
+        snapshot: {
+          ...snapshot,
+          fuente: 'openlibrary',
+          detalles: { tipo: 'libro', paginas: 662 },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Páginas: 662');
+  });
+
+  it('muestra plataformas y horas medias de los detalles de Juego', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(
+      ficha({
+        id: 'ficha-1',
+        titulo: 'God of War',
+        tipo: 'Juego',
+        snapshot: {
+          ...snapshot,
+          fuente: 'rawg',
+          detalles: { tipo: 'juego', plataformas: ['PlayStation 5', 'PC'], horasMedias: 14 },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent;
+    expect(texto).toContain('Plataformas: PlayStation 5, PC');
+    expect(texto).toContain('Duración media: 14 h');
+  });
+
+  it('no muestra datos de detalles si el Snapshot no los trae', () => {
+    const fixture = crear();
+    http.expectOne('/api/fichas/ficha-1').flush(ficha({ id: 'ficha-1', titulo: 'Dune', snapshot }));
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent;
+    expect(texto).not.toContain('Reparto:');
+    expect(texto).not.toContain('Duración:');
+  });
+
   it('etiqueta la autoría como Estudio en Juego', () => {
     const fixture = crear();
     http.expectOne('/api/fichas/ficha-1').flush(

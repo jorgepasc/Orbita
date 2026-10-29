@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Orbita.Api.Tests;
 
@@ -238,7 +239,19 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
                 { "id": 878, "name": "Ciencia ficción" },
                 { "id": 12, "name": "Aventura" }
               ],
+              "runtime": 155,
+              "production_countries": [
+                { "iso_3166_1": "US", "name": "United States of America" },
+                { "iso_3166_1": "CA", "name": "Canada" }
+              ],
               "credits": {
+                "cast": [
+                  { "name": "Timothée Chalamet" },
+                  { "name": "Rebecca Ferguson" },
+                  { "name": "Zendaya" },
+                  { "name": "Oscar Isaac" },
+                  { "name": "Josh Brolin" }
+                ],
                 "crew": [
                   { "name": "Denis Villeneuve", "job": "Director" },
                   { "name": "Jon Spaihts", "job": "Screenplay" }
@@ -260,6 +273,14 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         Assert.Equal("Denis Villeneuve", snapshot.Autoria);
         Assert.Equal(7.8m, snapshot.NotaExterna);
         Assert.Equal(["Ciencia ficción", "Aventura"], snapshot.Generos);
+
+        var detalles = snapshot.Detalles!.Value;
+        Assert.Equal("pelicula", detalles.GetProperty("tipo").GetString());
+        Assert.Equal(
+            ["Timothée Chalamet", "Rebecca Ferguson", "Zendaya", "Oscar Isaac"],
+            detalles.GetProperty("actores").Deserialize<string[]>()!);
+        Assert.Equal(["US", "CA"], detalles.GetProperty("paises").Deserialize<string[]>()!);
+        Assert.Equal(155, detalles.GetProperty("duracionMinutos").GetInt32());
 
         var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("/3/movie/438631"));
         Assert.Contains("language=es-ES", solicitud);
@@ -284,7 +305,18 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
               ],
               "created_by": [
                 { "id": 19303, "name": "Ryan Condal" }
-              ]
+              ],
+              "number_of_seasons": 2,
+              "number_of_episodes": 18,
+              "production_countries": [
+                { "iso_3166_1": "US", "name": "United States of America" }
+              ],
+              "credits": {
+                "cast": [
+                  { "name": "Emma D'Arcy" },
+                  { "name": "Matt Smith" }
+                ]
+              }
             }
             """);
 
@@ -301,7 +333,32 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         Assert.Equal("Ryan Condal", snapshot.Autoria);
         Assert.Equal(["Sci-Fi & Fantasy"], snapshot.Generos);
 
-        Assert.Single(apisExternas.SolicitudesQueContienen("/3/tv/94997"));
+        var detalles = snapshot.Detalles!.Value;
+        Assert.Equal("serie", detalles.GetProperty("tipo").GetString());
+        Assert.Equal(["Emma D'Arcy", "Matt Smith"], detalles.GetProperty("actores").Deserialize<string[]>()!);
+        Assert.Equal(["US"], detalles.GetProperty("paises").Deserialize<string[]>()!);
+        Assert.Equal(2, detalles.GetProperty("temporadas").GetInt32());
+        Assert.Equal(18, detalles.GetProperty("episodios").GetInt32());
+
+        var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("/3/tv/94997"));
+        Assert.Contains("append_to_response=credits", solicitud);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_serie_without_extra_data_has_no_detalles()
+    {
+        await AuthenticateAsync();
+        apisExternas.Responder(
+            "api.themoviedb.org/3/tv/1",
+            """{ "id": 1, "name": "Obscura", "number_of_seasons": 0, "number_of_episodes": 0 }""");
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Serie&idExterno=1");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Null(snapshot.Detalles);
     }
 
     [Fact]
@@ -322,6 +379,11 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
               ],
               "genres": [
                 { "id": 4, "name": "Action" }
+              ],
+              "playtime": 14,
+              "platforms": [
+                { "platform": { "id": 187, "name": "PlayStation 5" } },
+                { "platform": { "id": 4, "name": "PC" } }
               ]
             }
             """);
@@ -340,8 +402,30 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         Assert.Equal(94m, snapshot.NotaExterna);
         Assert.Equal(["Action"], snapshot.Generos);
 
+        var detalles = snapshot.Detalles!.Value;
+        Assert.Equal("juego", detalles.GetProperty("tipo").GetString());
+        Assert.Equal(["PlayStation 5", "PC"], detalles.GetProperty("plataformas").Deserialize<string[]>()!);
+        Assert.Equal(14, detalles.GetProperty("horasMedias").GetInt32());
+
         var solicitud = Assert.Single(apisExternas.SolicitudesQueContienen("api.rawg.io/api/games/58175"));
         Assert.Contains("key=test-rawg-key", solicitud);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_juego_without_platforms_or_playtime_has_no_detalles()
+    {
+        await AuthenticateAsync();
+        apisExternas.Responder(
+            "api.rawg.io/api/games/1",
+            """{ "id": 1, "name": "Obscuro", "playtime": 0, "platforms": [] }""");
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Juego&idExterno=1");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Null(snapshot.Detalles);
     }
 
     [Fact]
@@ -364,6 +448,9 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
         apisExternas.Responder(
             "openlibrary.org/authors/OL23919A.json",
             """{ "name": "Patrick Rothfuss" }""");
+        apisExternas.Responder(
+            "openlibrary.org/search.json",
+            """{ "docs": [ { "key": "/works/OL45804W", "title": "El nombre del viento", "number_of_pages_median": 662 } ] }""");
 
         using var response = await client.GetAsync(
             "/api/enriquecimiento/snapshot?tipo=Libro&idExterno=%2Fworks%2FOL45804W");
@@ -381,6 +468,70 @@ public sealed class EnriquecimientoEndpointTests : IClassFixture<OrbitaApiFactor
 
         Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/works/OL45804W.json"));
         Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/authors/OL23919A.json"));
+
+        var detalles = snapshot.Detalles!.Value;
+        Assert.Equal("libro", detalles.GetProperty("tipo").GetString());
+        Assert.Equal(662, detalles.GetProperty("paginas").GetInt32());
+        Assert.Contains(
+            "number_of_pages_median",
+            Assert.Single(apisExternas.SolicitudesQueContienen("openlibrary.org/search.json")));
+    }
+
+    [Fact]
+    public async Task Snapshot_for_libro_without_pages_in_the_search_has_no_detalles()
+    {
+        await AuthenticateAsync();
+        StubLibro(primeraPublicacion: "2007");
+        apisExternas.Responder(
+            "openlibrary.org/search.json",
+            """{ "docs": [ { "key": "/works/OL45804W", "title": "El nombre del viento" } ] }""");
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=C%C3%B3mic&idExterno=%2Fworks%2FOL45804W");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Equal(2007, snapshot.Anio);
+        Assert.Null(snapshot.Detalles);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_libro_survives_a_failed_search_when_the_year_is_known()
+    {
+        await AuthenticateAsync();
+        StubLibro(primeraPublicacion: "2007");
+        apisExternas.Responder("openlibrary.org/search.json", "{}", HttpStatusCode.BadGateway);
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Libro&idExterno=%2Fworks%2FOL45804W");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var snapshot = await response.Content.ReadFromJsonAsync<SnapshotResponse>();
+        Assert.NotNull(snapshot);
+        Assert.Equal(2007, snapshot.Anio);
+        Assert.Null(snapshot.Detalles);
+    }
+
+    [Fact]
+    public async Task Snapshot_for_libro_fails_when_the_search_fails_and_the_year_is_unknown()
+    {
+        await AuthenticateAsync();
+        StubLibro(primeraPublicacion: null);
+        apisExternas.Responder("openlibrary.org/search.json", "{}", HttpStatusCode.BadGateway);
+
+        using var response = await client.GetAsync(
+            "/api/enriquecimiento/snapshot?tipo=Libro&idExterno=%2Fworks%2FOL45804W");
+
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+    }
+
+    private void StubLibro(string? primeraPublicacion)
+    {
+        var fecha = primeraPublicacion is null ? string.Empty : $"\"first_publish_date\": \"{primeraPublicacion}\",";
+        apisExternas.Responder(
+            "openlibrary.org/works/OL45804W.json",
+            $$"""{ "key": "/works/OL45804W", {{fecha}} "subjects": [] }""");
     }
 
     [Fact]

@@ -27,7 +27,7 @@ Libro y Cómic consultan la misma API: el Tipo lo declara el usuario al crear, n
 
 ## Snapshot
 
-Shape única para todos los Tipos (columna `Ficha.Snapshot`, jsonb, ya existe en el modelo y la migración):
+Núcleo común para todos los Tipos más un `detalles` opcional propio de cada Tipo (ADR 0004). Columna `Ficha.Snapshot`, jsonb, ya existe en el modelo y la migración:
 
 ```json
 {
@@ -37,9 +37,17 @@ Shape única para todos los Tipos (columna `Ficha.Snapshot`, jsonb, ya existe en
   "anio": 2021,
   "autoria": "Denis Villeneuve",
   "notaExterna": 7.8,
-  "generos": ["Ciencia ficción", "Aventura"]
+  "generos": ["Ciencia ficción", "Aventura"],
+  "detalles": {
+    "tipo": "pelicula",
+    "actores": ["Timothée Chalamet", "Zendaya"],
+    "paises": ["US", "CA"],
+    "duracionMinutos": 155
+  }
 }
 ```
+
+- `detalles`: se omite si el proveedor no aporta nada para ese Tipo. Hoy existen `pelicula` (actores principales, máximo 4; países en ISO 3166-1; duración) y `libro` (páginas, compartido por Libro y Cómic; Open Library solo las expone como `number_of_pages_median` en la búsqueda, así que es un dato aproximado y se omite si no hay). `juego` (plataformas y horas medias; RAWG devuelve `playtime` 0 sin dato, que se trata como ausente). `serie` (actores, países, temporadas, episodios; TMDB devuelve 0 sin dato, que se trata como ausente, y el snapshot no lleva `detalles` si no hay nada). El dominio rechaza unos `detalles` que no correspondan al Tipo.
 
 - `autoria`: director (Película), creador (Serie, `created_by[0]`), estudio (Juego, `developers[0]`), autor (Libro/Cómic). El significado lo da el Tipo de la Ficha.
 - `notaExterna`: nula para Libro/Cómic y para juegos sin nota Metacritic.
@@ -51,7 +59,7 @@ Shape única para todos los Tipos (columna `Ficha.Snapshot`, jsonb, ya existe en
 Autenticadas con el mismo JWT que `/api/fichas`.
 
 - `GET /api/enriquecimiento/resultados?q={texto}&tipo={Tipo}` → lista de Resultados: `{ idExterno, titulo, anio, portada (thumb), notaExterna }`. Máximo 20, sin paginación. El `tipo` usa los nombres del glosario (`Película`, `Serie`, `Juego`, `Libro`, `Cómic`).
-- `GET /api/enriquecimiento/snapshot?tipo={Tipo}&idExterno={id}` → el Snapshot (shape de arriba), construido desde el detalle de la API correspondiente (TMDB con `append_to_response=credits` para el director).
+- `GET /api/enriquecimiento/snapshot?tipo={Tipo}&idExterno={id}` → el Snapshot (shape de arriba), construido desde el detalle de la API correspondiente (TMDB con `append_to_response=credits` para el director o el reparto).
 - `POST /api/fichas` / `PUT`: `FichaInput`/`FichaResponse` añaden `snapshot` (objeto opcional). El backend valida que la `fuente` del Snapshot sea válida para el `Tipo` de la Ficha (tmdb → Película/Serie, rawg → Juego, openlibrary → Libro/Cómic). En `PUT`, el Snapshot se ignora (inmutable).
 
 ## Frontend (Angular)

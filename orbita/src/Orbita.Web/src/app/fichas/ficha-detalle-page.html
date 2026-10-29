@@ -27,6 +27,45 @@
           @if (snapshot.anio; as anio) {
             <p class="anio">{{ anio }}</p>
           }
+          @if (snapshot.detalles; as detalles) {
+            @if (detalles.tipo === 'pelicula') {
+              @if (detalles.actores.length > 0) {
+                <p class="anio"><strong>Reparto:</strong> {{ detalles.actores.join(', ') }}</p>
+              }
+              @if (detalles.paises.length > 0) {
+                <p class="anio"><strong>País:</strong> {{ paises(detalles.paises) }}</p>
+              }
+              @if (detalles.duracionMinutos; as duracion) {
+                <p class="anio"><strong>Duración:</strong> {{ duracion }} min</p>
+              }
+            } @else if (detalles.tipo === 'serie') {
+              @if (detalles.actores.length > 0) {
+                <p class="anio"><strong>Reparto:</strong> {{ detalles.actores.join(', ') }}</p>
+              }
+              @if (detalles.paises.length > 0) {
+                <p class="anio"><strong>País:</strong> {{ paises(detalles.paises) }}</p>
+              }
+              @if (detalles.temporadas; as temporadas) {
+                <p class="anio">
+                  <strong>Temporadas:</strong> {{ temporadas
+                  }}{{ detalles.episodios ? ' · ' + detalles.episodios + ' episodios' : '' }}
+                </p>
+              } @else if (detalles.episodios; as episodios) {
+                <p class="anio"><strong>Episodios:</strong> {{ episodios }}</p>
+              }
+            } @else if (detalles.tipo === 'libro') {
+              @if (detalles.paginas; as paginas) {
+                <p class="anio"><strong>Páginas:</strong> {{ paginas }}</p>
+              }
+            } @else if (detalles.tipo === 'juego') {
+              @if (detalles.plataformas.length > 0) {
+                <p class="anio"><strong>Plataformas:</strong> {{ detalles.plataformas.join(', ') }}</p>
+              }
+              @if (detalles.horasMedias; as horas) {
+                <p class="anio"><strong>Duración media:</strong> {{ horas }} h</p>
+              }
+            }
+          }
           @if (mostrarNotaExterna(ficha.tipo) && notaExterna(ficha); as nota) {
             <p class="nota-externa">Nota Externa {{ nota }}</p>
           }

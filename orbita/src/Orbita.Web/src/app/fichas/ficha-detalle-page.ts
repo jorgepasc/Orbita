@@ -66,6 +66,11 @@ export class FichaDetallePage {
     return ETIQUETA_AUTORIA[tipo];
   }
 
+  protected paises(codigos: readonly string[]): string {
+    const nombres = new Intl.DisplayNames(['es'], { type: 'region' });
+    return codigos.map((codigo) => nombres.of(codigo) ?? codigo).join(', ');
+  }
+
   protected mostrarNotaExterna(tipo: TipoFicha): boolean {
     return tipo !== 'Libro' && tipo !== 'Cómic';
   }
